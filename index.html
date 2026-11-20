@@ -1,0 +1,3091 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Little Knife · 小刀永生计划 v1.2</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      font-family: 'Inter', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+      background-color: #080d1a;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.14), transparent),
+        radial-gradient(ellipse 60% 40% at 50% 110%, rgba(20, 184, 166, 0.12), transparent);
+      color: #e2e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.5);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.8);
+    }
+
+    /* Tier Gradients */
+    .tier-sky {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.38) 0%, rgba(15, 23, 42, 0.72) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      box-shadow: inset 0 1px 0 rgba(125, 211, 252, 0.15);
+    }
+    .tier-land {
+      background: linear-gradient(135deg, rgba(6, 78, 59, 0.32) 0%, rgba(15, 23, 42, 0.78) 100%);
+      border: 1px solid rgba(52, 211, 153, 0.32);
+      box-shadow: inset 0 1px 0 rgba(110, 231, 183, 0.12);
+    }
+    .tier-sea {
+      background: linear-gradient(135deg, rgba(14, 116, 144, 0.35) 0%, rgba(12, 25, 48, 0.85) 100%);
+      border: 1px solid rgba(34, 211, 238, 0.32);
+      box-shadow: inset 0 1px 0 rgba(103, 232, 249, 0.12);
+    }
+
+    /* Map Node Card */
+    .map-node {
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(8px);
+      transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .map-node:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.32);
+      box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.55);
+    }
+    .map-node-active {
+      box-shadow: 0 0 0 2px #f59e0b, 0 0 22px rgba(245, 158, 11, 0.35);
+      border-color: #f59e0b !important;
+    }
+
+    /* Action Buttons */
+    .btn-tac {
+      transition: all 0.16s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-tac:hover:not(:disabled) {
+      transform: translateY(-1px);
+      filter: brightness(1.1);
+    }
+    .btn-tac:active:not(:disabled) {
+      transform: translateY(0px) scale(0.98);
+    }
+    .btn-tac:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
+    }
+
+    /* Animations */
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.45); }
+      50% { box-shadow: 0 0 0 6px rgba(251, 191, 36, 0); }
+    }
+    .active-actor-ring {
+      animation: pulseGlow 1.8s infinite;
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-enter {
+      animation: fadeSlideUp 0.24s ease-out forwards;
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-amber-500/30 selection:text-amber-200">
+
+  <!-- ==================== TOP NAVIGATION BAR ==================== -->
+  <header class="sticky top-0 z-30 border-b border-slate-800/90 bg-slate-950/85 backdrop-blur-md">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center shadow-lg shadow-rose-900/40 text-lg font-black">
+          🔪
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">Little Knife · 小刀永生计划</h1>
+            <span class="px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">v1.2</span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">三层立体空间猜拳策略博弈 · 数据驱动可扩展架构</p>
+        </div>
+      </div>
+
+      <!-- Status Pill (visible in-game) -->
+      <div id="top-phase-bar" class="hidden items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700/80 text-xs font-semibold">
+        <span id="top-round-label" class="text-amber-400 font-bold">第 1 回合</span>
+        <span class="text-slate-600">|</span>
+        <span id="top-phase-label" class="text-sky-300">猜拳获步阶段</span>
+      </div>
+
+      <!-- Utility Controls -->
+      <div class="flex items-center gap-2">
+        <button onclick="openRulebookModal()" class="btn-tac px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs sm:text-sm font-medium text-slate-200 flex items-center gap-1.5">
+          <span>📖</span><span>规则书</span>
+        </button>
+        <button onclick="openConfigModal()" class="btn-tac px-3 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-900/80 border border-indigo-500/40 text-xs sm:text-sm font-medium text-indigo-200 flex items-center gap-1.5">
+          <span>⚙️</span><span>规则/角色热更新</span>
+        </button>
+        <button id="btn-restart-top" onclick="openRestartConfirmModal()" class="hidden btn-tac px-3 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900/70 border border-rose-500/40 text-xs sm:text-sm font-medium text-rose-200 flex items-center gap-1.5">
+          <span>🔄</span><span>重开</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTAINER ==================== -->
+  <main class="max-w-[1600px] mx-auto p-3 sm:p-5">
+
+    <!-- ==================== VIEW 1: SETUP SCREEN ==================== -->
+    <section id="view-setup" class="max-w-4xl mx-auto py-4 sm:py-8 animate-enter">
+      <div class="glass-panel rounded-2xl p-5 sm:p-8 shadow-2xl">
+        <div class="text-center mb-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold mb-3">
+            <span>⚔️</span><span>把模糊的默契翻译成绝对严密的逻辑</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">对局大厅 · 战前整备</h2>
+          <p class="text-sm text-slate-400 mt-1">支持 2–4 人同屏隐私对战或 AI 陪练 · 点击右上角「规则/角色热更新」可随时自定义数值与新增角色</p>
+        </div>
+
+        <!-- Player Count Selector -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-slate-300">参战人数：</span>
+            <div class="flex gap-1.5" id="setup-count-buttons">
+              <button onclick="setSetupPlayerCount(2)" data-count="2" class="setup-cnt-btn px-3.5 py-1.5 rounded-lg text-sm font-bold border transition">2 人局</button>
+              <button onclick="setSetupPlayerCount(3)" data-count="3" class="setup-cnt-btn px-3.5 py-1.5 rounded-lg text-sm font-bold border transition">3 人混战</button>
+              <button onclick="setSetupPlayerCount(4)" data-count="4" class="setup-cnt-btn px-3.5 py-1.5 rounded-lg text-sm font-bold border transition">4 人大乱斗</button>
+            </div>
+          </div>
+          <div class="text-xs text-slate-400 flex items-center gap-2">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>当前已加载 <strong id="setup-role-count" class="text-white">4</strong> 个可选角色</span>
+          </div>
+        </div>
+
+        <!-- Player Slots -->
+        <div id="setup-player-slots" class="grid grid-cols-1 md:grid-cols-2 gap-3.5 mb-6"></div>
+
+        <!-- Role Quick Preview -->
+        <div class="mb-6 bg-slate-900/70 border border-slate-800 rounded-xl p-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">当前角色图鉴</h3>
+          <div id="setup-role-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs"></div>
+        </div>
+
+        <!-- Start Button -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button onclick="startGame()" class="btn-tac w-full sm:w-auto px-10 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-white font-extrabold text-base shadow-xl shadow-orange-900/40 tracking-wide">
+            🚀 开启小刀永生战局
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: MAIN GAME BOARD ==================== -->
+    <section id="view-game" class="hidden grid-cols-1 lg:grid-cols-12 gap-4 animate-enter">
+
+      <!-- LEFT / CENTER COLUMN (8 cols): 3-Tier Map + Action Console -->
+      <div class="lg:col-span-8 flex flex-col gap-4">
+
+        <!-- Phase Banner / Interactive Command Console -->
+        <div id="command-console" class="glass-panel rounded-2xl p-4 border-amber-500/30 shadow-xl">
+          <!-- Dynamically populated based on current phase (RPS / Initiative / Action / AI Thinking) -->
+        </div>
+
+        <!-- 3-TIER SPATIAL BOARD -->
+        <div class="flex flex-col gap-3">
+
+          <!-- TIER 1: SKY (天空层) -->
+          <div class="tier-sky rounded-2xl p-3.5">
+            <div class="flex items-center justify-between mb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="text-base">☁️</span>
+                <h3 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-sky-300">天空层 · SKY</h3>
+                <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-950/90 text-sky-300 border border-sky-500/30">缺氧区 (3回合)</span>
+              </div>
+              <span class="text-[11px] text-sky-200/75 hidden sm:inline">陆地1步→天一(半空)→1步→天二｜半空回合末自动无伤坠落(码头除外)</span>
+            </div>
+            <div id="map-tier-sky" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5"></div>
+          </div>
+
+          <!-- TIER 2: LAND (陆地层) -->
+          <div class="tier-land rounded-2xl p-3.5">
+            <div class="flex items-center justify-between mb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="text-base">🏙️</span>
+                <h3 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-emerald-300">陆地层 · LAND</h3>
+                <span class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-950/90 text-emerald-300 border border-emerald-500/30">氧气充足 · 两两一步直达</span>
+              </div>
+              <span class="text-[11px] text-emerald-200/75 hidden sm:inline">移动可免费强制带人｜警察局远程逮捕｜码头一步下海</span>
+            </div>
+            <!-- Special Land Locations -->
+            <div id="map-tier-land-special" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5 mb-2.5"></div>
+            <!-- Player Homes -->
+            <div id="map-tier-land-homes" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5"></div>
+          </div>
+
+          <!-- TIER 3: SEA (海洋层) -->
+          <div class="tier-sea rounded-2xl p-3.5">
+            <div class="flex items-center justify-between mb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="text-base">🌊</span>
+                <h3 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-cyan-300">海洋层 · SEA</h3>
+                <span class="text-[11px] px-2 py-0.5 rounded-full bg-cyan-950/90 text-cyan-300 border border-cyan-500/30">缺氧区 (3回合) · 需经码头往返</span>
+              </div>
+              <span class="text-[11px] text-cyan-200/75 hidden sm:inline">遗迹50%闪避+挖10裤｜龙宫4件唯一神器共享进度</span>
+            </div>
+            <div id="map-tier-sea" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN (4 cols): Player Status Cards + Tactical Log -->
+      <div class="lg:col-span-4 flex flex-col gap-4">
+
+        <!-- Live Players Status -->
+        <div class="glass-panel rounded-2xl p-3.5">
+          <div class="flex items-center justify-between mb-2.5">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <span>👥</span><span>参战角色实时态势</span>
+            </h3>
+            <span id="alive-counter" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-emerald-300">存活 4/4</span>
+          </div>
+          <div id="player-status-list" class="flex flex-col gap-2.5"></div>
+        </div>
+
+        <!-- Dragon Palace Global Artifacts Summary -->
+        <div class="glass-panel rounded-2xl p-3.5">
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-amber-300 mb-2 flex items-center gap-1.5">
+            <span>🐉</span><span>龙宫神器全局进度</span>
+          </h3>
+          <div id="artifact-global-list" class="grid grid-cols-2 gap-2 text-xs"></div>
+        </div>
+
+        <!-- Scrolling Tactical Battle Log -->
+        <div class="glass-panel rounded-2xl p-3.5 flex flex-col flex-1 min-h-[260px] max-h-[420px]">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <span>📜</span><span>战术战报日志</span>
+            </h3>
+            <span class="text-[10px] text-slate-500">最新消息置顶</span>
+          </div>
+          <div id="battle-log" class="flex-1 overflow-y-auto space-y-1.5 pr-1 text-xs leading-relaxed"></div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== GENERIC OVERLAY MODAL CONTAINER ==================== -->
+  <div id="modal-overlay" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div id="modal-box" class="glass-panel rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border-slate-600/50 animate-enter">
+      <!-- Dynamic Modal Content -->
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION ==================== -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    /*************************************************************************
+     * 1. DATA-DRIVEN GAME CONFIGURATION (Easily Editable & Extensible!)
+     *************************************************************************/
+    const DEFAULT_GAME_CONFIG = {
+      version: "1.2",
+      settings: {
+        ruinsHitChance: 0.50,          // 遗迹攻击命中率 (50%)
+        ruinsDigSuccessChance: 0.25,   // 遗迹挖掘成功率 (25%)
+        ruinsDigMaxKu: 10,             // 遗迹宝藏裤子上限
+        oxygenMaxTurns: 3,             // 海里/天空缺氧倒计时回合数
+        skyFallDamage: 2,              // 天二直跳陆地摔落伤害
+        policeHealAmount: 0.5,         // 警察局搬运尸体回血量
+        wishRequiredSteps: 3,          // 许愿池所需步数
+        wardenDefaultKu: 3,            // 典狱长默认裤子
+        wardenDefaultHp: 1,            // 典狱长默认生命
+        wardenEnhancedKu: 6            // 通缉令强化典狱长裤子
+      },
+      artifacts: {
+        sq1: { id: "sq1", name: "大刀", icon: "🗡️", steps: 2, desc: "所有攻击效果翻倍（含扒裤与咔）" },
+        sq2: { id: "sq2", name: "利刃", icon: "⚡", steps: 1, desc: "解锁【突进】：1步移动并免费发动1次攻击" },
+        sq3: { id: "sq3", name: "猪脸", icon: "🐷", steps: 3, desc: "他人对你任何敌对/强制互动前必须先贴脸花1步【捏脸】" },
+        sq4: { id: "sq4", name: "云梯", icon: "🪜", steps: 2, desc: "随时1步登天二，或1步从天空安全去任意地点(无伤)" }
+      },
+      roles: [
+        {
+          id: "normal",
+          name: "普通人",
+          tag: "平衡者",
+          icon: "🧑",
+          color: "slate",
+          hp: 1,
+          ku: 1,
+          kuMax: 2,
+          atkMult: 1.0,
+          skillType: "none",
+          skillDesc: "标准身材，无特殊被动，全靠走位与博弈取胜。"
+        },
+        {
+          id: "assassin",
+          name: "突袭者",
+          tag: "刺客",
+          icon: "🥷",
+          color: "purple",
+          hp: 1,
+          ku: 0.5,
+          kuMax: 1,
+          atkMult: 1.5,
+          skillType: "stealth",
+          skillDesc: "1步【隐身】：暂时从地图消失免疫锁定，下回合末所有人行动完后现身执行1步潜行动作，若下回合猜拳获胜可连续行动2步！"
+        },
+        {
+          id: "stormer",
+          name: "风暴者",
+          tag: "控场",
+          icon: "🌪️",
+          color: "cyan",
+          hp: 1,
+          ku: 0.5,
+          kuMax: 1.5,
+          atkMult: 1.0,
+          skillType: "storm",
+          stormCharges: 2,
+          skillDesc: "每局2次免费【乱流风暴】：远程将1名玩家吹至同层级其他地点（不触发带人）；亦可花1步吹走某地点全体玩家。"
+        },
+        {
+          id: "tank",
+          name: "坚韧者",
+          tag: "重装",
+          icon: "🛡️",
+          color: "amber",
+          hp: 4,
+          ku: 1,
+          kuMax: 2,
+          atkMult: 1.0,
+          skillType: "none",
+          skillDesc: "4点超高生命值，极难被秒杀，甚至能强行带着敌人从高空跳崖同归于尽而自己存活。"
+        }
+      ]
+    };
+
+    // Deep clone active config so user can edit or reset cleanly
+    let GAME_CONFIG = JSON.parse(JSON.stringify(DEFAULT_GAME_CONFIG));
+
+    // Player Theme Colors for visual differentiation
+    const PLAYER_PALETTES = [
+      { bg: "bg-amber-500/20", border: "border-amber-400/60", text: "text-amber-300", badge: "bg-amber-500 text-slate-950", hex: "#f59e0b" },
+      { bg: "bg-sky-500/20", border: "border-sky-400/60", text: "text-sky-300", badge: "bg-sky-400 text-slate-950", hex: "#38bdf8" },
+      { bg: "bg-rose-500/20", border: "border-rose-400/60", text: "text-rose-300", badge: "bg-rose-500 text-white", hex: "#f43f5e" },
+      { bg: "bg-emerald-500/20", border: "border-emerald-400/60", text: "text-emerald-300", badge: "bg-emerald-400 text-slate-950", hex: "#34d399" }
+    ];
+
+    const GESTURES = {
+      rock: { id: "rock", name: "石头", icon: "✊" },
+      scissors: { id: "scissors", name: "剪刀", icon: "✌️" },
+      paper: { id: "paper", name: "布", icon: "🖐️" }
+    };
+
+    /*************************************************************************
+     * 2. SETUP LOBBY STATE
+     *************************************************************************/
+    let setupState = {
+      playerCount: 3,
+      slots: [
+        { name: "玩家 1", isAI: false, roleId: "normal" },
+        { name: "AI · 影刃", isAI: true, roleId: "assassin" },
+        { name: "AI · 狂风", isAI: true, roleId: "stormer" },
+        { name: "AI · 铁壁", isAI: true, roleId: "tank" }
+      ]
+    };
+
+    /*************************************************************************
+     * 3. CORE GAME STATE MACHINE
+     *************************************************************************/
+    let state = null;
+
+    function createInitialState() {
+      const players = [];
+      for (let i = 0; i < setupState.playerCount; i++) {
+        const slot = setupState.slots[i];
+        const role = GAME_CONFIG.roles.find(r => r.id === slot.roleId) || GAME_CONFIG.roles[0];
+        players.push({
+          id: i,
+          name: (slot.name || `玩家 ${i + 1}`).trim(),
+          isAI: slot.isAI,
+          roleId: role.id,
+          roleName: role.name,
+          roleIcon: role.icon,
+          skillType: role.skillType || "none",
+          palette: PLAYER_PALETTES[i % PLAYER_PALETTES.length],
+          alive: true,
+          hp: role.hp,
+          maxHp: role.hp,
+          ku: role.ku,
+          kuMax: role.kuMax,
+          atkMult: role.atkMult,
+          knives: 0,
+          loc: `home_${i}`,
+          homeLoc: `home_${i}`,
+          o2Turns: GAME_CONFIG.settings.oxygenMaxTurns,
+          o2GraceTurn: false,
+          hasO2Tank: true,
+          hasFrogMask: false,
+          artifacts: [],          // array of 'sq1' | 'sq2' | 'sq3' | 'sq4'
+          pinchedBy: [],          // playerIds who have pinched this player's pig face
+          wishProgress: 0,
+          stealthed: false,       // currently vanished from map
+          stealthReadyNextRound: false, // gains delayed action next round
+          stormCharges: role.skillType === "storm" ? (role.stormCharges ?? 2) : 0,
+          cannotAttackIds: []     // from 轮回转生 wish
+        });
+      }
+
+      const artifactsState = {};
+      Object.keys(GAME_CONFIG.artifacts).forEach(k => {
+        const a = GAME_CONFIG.artifacts[k];
+        artifactsState[k] = {
+          id: a.id,
+          name: a.name,
+          icon: a.icon,
+          required: a.steps,
+          progress: 0,
+          ownerId: null,
+          desc: a.desc
+        };
+      });
+
+      return {
+        round: 1,
+        phase: "RPS", // RPS | INITIATIVE | ACTION | END_FALL | GAME_OVER
+        players,
+        warden: {
+          ku: GAME_CONFIG.settings.wardenDefaultKu,
+          maxKu: GAME_CONFIG.settings.wardenDefaultKu,
+          hp: GAME_CONFIG.settings.wardenDefaultHp,
+          maxHp: GAME_CONFIG.settings.wardenDefaultHp,
+          enhanced: false
+        },
+        artifacts: artifactsState,
+        // RPS tracking
+        rpsChoices: {},          // { playerId: 'rock'|'scissors'|'paper' }
+        rpsHumanQueue: [],       // human playerIds pending secret choice
+        rpsLastResult: null,     // { choices, winners, tie }
+        // Initiative tracking
+        initContenders: [],      // playerIds fighting for initiative rank
+        initRanked: [],          // ordered playerIds [1st, 2nd, ...]
+        initSubPool: [],         // current subset doing tiebreaker RPS
+        initChoices: {},
+        initHumanQueue: [],
+        initSlotChoicesPending: false,
+        // Action queue
+        actionQueue: [],         // array of { playerId, steps, isStealthBonus }
+        currentActorIdx: 0,
+        currentStepsLeft: 0,
+        // Stealth tracking for round
+        stealthWonRpsThisRound: [],
+        // Pending end-of-round sky_mid falls
+        pendingFallPlayers: [],
+        // Battle log
+        logs: [],
+        // Busy lock for AI timeouts
+        aiTimer: null
+      };
+    }
+
+    /*************************************************************************
+     * 4. MAP DEFINITIONS & TOPOLOGY HELPERS
+     *************************************************************************/
+    function getAllLocations() {
+      const locs = [
+        // SKY
+        { id: "sky_stable", name: "马厩", layer: "sky", icon: "🐎", short: "安全1步下陆地" },
+        { id: "sky_wish", name: "许愿池", layer: "sky", icon: "🌠", short: `个人${GAME_CONFIG.settings.wishRequiredSteps}步许愿` },
+        { id: "sky_mid", name: "天一 (半空)", layer: "sky", icon: "🌤️", short: "中转层·回合末自选无伤坠落" },
+        // LAND SPECIAL
+        { id: "land_police", name: "警察局", layer: "land", icon: "🚓", short: "远程逮捕(BO3)·疗伤·自首" },
+        { id: "land_prison_out", name: "监狱 · 外", layer: "land", icon: "🏛️", short: "可协攻典狱长·内外隔离" },
+        { id: "land_prison_in", name: "监狱 · 内", layer: "land", icon: "⛓️", short: "击杀典狱长方可越狱" },
+        { id: "land_pier", name: "码头", layer: "land", icon: "⚓", short: "1步下海/上岸枢纽" },
+        // SEA
+        { id: "sea_aquarium", name: "水族馆", layer: "sea", icon: "🐸", short: "青蛙面罩(永久呼吸/0裤0.5血)" },
+        { id: "sea_ruins", name: "遗迹", layer: "sea", icon: "🏺", short: `${Math.round(GAME_CONFIG.settings.ruinsHitChance*100)}%命中·${Math.round(GAME_CONFIG.settings.ruinsDigSuccessChance*100)}%挖${GAME_CONFIG.settings.ruinsDigMaxKu}裤上限` },
+        { id: "sea_palace", name: "龙宫", layer: "sea", icon: "🐉", short: "争夺4件全服唯一神器" }
+      ];
+      // Dynamic Player Homes
+      if (state && state.players) {
+        state.players.forEach(p => {
+          locs.push({
+            id: p.homeLoc,
+            name: `${p.name}的家`,
+            layer: "land",
+            icon: "🏠",
+            short: "陆地出生点",
+            isHome: true,
+            ownerId: p.id
+          });
+        });
+      }
+      return locs;
+    }
+
+    function getLoc(locId) {
+      return getAllLocations().find(l => l.id === locId) || { id: locId, name: locId, layer: "land", icon: "📍", short: "" };
+    }
+
+    function getNormalLandLocIds() {
+      const ids = ["land_police", "land_prison_out", "land_pier"];
+      state.players.forEach(p => ids.push(p.homeLoc));
+      return ids;
+    }
+
+    function getSeaLocIds() {
+      return ["sea_aquarium", "sea_ruins", "sea_palace"];
+    }
+
+    function getSkyUpperLocIds() {
+      return ["sky_stable", "sky_wish"];
+    }
+
+    /**
+     * Returns reachable destinations for a player via 1-step normal Move.
+     * Each entry: { locId, tag, dangerType: 'safe' | 'fall_hp' | 'fall_o2' }
+     */
+    function getReachableDestinations(player) {
+      const loc = player.loc;
+      const hasLadder = player.artifacts.includes("sq4");
+      const results = [];
+      const addDest = (locId, tag = "", dangerType = "safe") => {
+        if (locId === loc) return;
+        if (results.some(r => r.locId === locId)) return;
+        results.push({ locId, tag, dangerType });
+      };
+
+      // Prison Inside: Locked! Cannot leave via normal movement
+      if (loc === "land_prison_in") {
+        return [];
+      }
+
+      const locObj = getLoc(loc);
+      const normalLands = getNormalLandLocIds();
+      const seas = getSeaLocIds();
+      const skyUpper = getSkyUpperLocIds();
+
+      if (locObj.layer === "land") {
+        // Interconnected land
+        normalLands.forEach(id => addDest(id, "陆地移动", "safe"));
+        // Ascend to sky_mid
+        addDest("sky_mid", "升天一(半空)", "safe");
+        // Pier -> Sea
+        if (loc === "land_pier") {
+          seas.forEach(id => addDest(id, "下海", "safe"));
+        }
+        // Ladder -> direct to Sky Upper
+        if (hasLadder) {
+          skyUpper.forEach(id => addDest(id, "🪜云梯直登天二", "safe"));
+        }
+      } else if (locObj.layer === "sea") {
+        // Interconnected sea + back to Pier
+        seas.forEach(id => addDest(id, "海底移动", "safe"));
+        addDest("land_pier", "游回码头上岸", "safe");
+        // Ladder -> direct to Sky Upper
+        if (hasLadder) {
+          skyUpper.forEach(id => addDest(id, "🪜云梯直登天二", "safe"));
+        }
+      } else if (loc === "sky_mid") {
+        // From half-air: ascend to 天二 OR voluntarily drop anywhere except pier (0 damage)
+        skyUpper.forEach(id => addDest(id, "升天二", "safe"));
+        normalLands.filter(id => id !== "land_pier").forEach(id => addDest(id, "半空无伤落地", "safe"));
+        seas.forEach(id => addDest(id, "半空无伤入海", "safe"));
+      } else if (loc === "sky_stable" || loc === "sky_wish") {
+        // Move between sky upper locations
+        skyUpper.forEach(id => addDest(id, "天空移动", "safe"));
+
+        if (hasLadder) {
+          // Ladder: safe to ANY land or sea!
+          normalLands.forEach(id => addDest(id, "🪜云梯安全降落", "safe"));
+          seas.forEach(id => addDest(id, "🪜云梯安全入海", "safe"));
+        } else {
+          if (loc === "sky_stable") {
+            // Stable safe descent to Land
+            normalLands.forEach(id => addDest(id, "🐎马厩安全下陆地", "safe"));
+          } else {
+            // Jump from Wishing Pool to Land -> 2 HP damage!
+            normalLands.forEach(id => addDest(id, `⚠️高空跳落(-${GAME_CONFIG.settings.skyFallDamage}HP)`, "fall_hp"));
+          }
+          // Jump from Sky Upper to Sea -> 0 dmg, breaks O2 tank!
+          seas.forEach(id => addDest(id, "⚠️跳海(氧气瓶损坏)", "fall_o2"));
+        }
+      }
+
+      return results;
+    }
+
+    function canHostileInteract(actor, target) {
+      if (!target.alive || target.stealthed) return { ok: false, reason: "目标不可选中" };
+      if (target.id === actor.id) return { ok: false, reason: "不能选择自己" };
+      if (target.artifacts.includes("sq3") && !target.pinchedBy.includes(actor.id)) {
+        return { ok: false, reason: "对方持有🐷猪脸，需先贴脸花1步【捏脸】" };
+      }
+      return { ok: true };
+    }
+
+    function canAttackTarget(actor, target) {
+      if (actor.cannotAttackIds.includes(target.id)) {
+        return { ok: false, reason: "受【轮回转生】契约约束，本局不可攻击救命恩人" };
+      }
+      if (actor.loc !== target.loc) {
+        return { ok: false, reason: "必须贴脸（同一地点）" };
+      }
+      return canHostileInteract(actor, target);
+    }
+
+    function formatNum(n) {
+      return Number.isInteger(n) ? `${n}` : `${Number(n.toFixed(1))}`;
+    }
+
+    function addLog(msg, tone = "normal") {
+      const colors = {
+        normal: "text-slate-300 border-slate-700/60 bg-slate-900/50",
+        phase: "text-amber-300 border-amber-500/40 bg-amber-950/30 font-bold",
+        combat: "text-rose-300 border-rose-500/40 bg-rose-950/30",
+        skill: "text-purple-300 border-purple-500/40 bg-purple-950/30",
+        artifact: "text-cyan-300 border-cyan-500/40 bg-cyan-950/35 font-semibold",
+        death: "text-red-200 border-red-500/70 bg-red-950/60 font-bold",
+        wish: "text-yellow-200 border-yellow-400/60 bg-yellow-950/40 font-bold"
+      };
+      state.logs.unshift({
+        round: state.round,
+        msg,
+        cls: colors[tone] || colors.normal
+      });
+      if (state.logs.length > 120) state.logs.pop();
+    }
+
+    function showToast(msg, type = "info") {
+      const container = document.getElementById("toast-container");
+      const el = document.createElement("div");
+      const styles = {
+        info: "bg-slate-900/95 border-sky-500/50 text-sky-200",
+        warn: "bg-amber-950/95 border-amber-500/60 text-amber-200",
+        danger: "bg-rose-950/95 border-rose-500/60 text-rose-200",
+        success: "bg-emerald-950/95 border-emerald-500/60 text-emerald-200"
+      };
+      el.className = `px-4 py-2.5 rounded-xl border shadow-xl text-xs sm:text-sm font-semibold animate-enter ${styles[type] || styles.info}`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = "0";
+        el.style.transition = "opacity 0.3s ease";
+        setTimeout(() => el.remove(), 300);
+      }, 2800);
+    }
+
+    /*************************************************************************
+     * 5. SETUP LOBBY UI RENDERING
+     *************************************************************************/
+    function setSetupPlayerCount(cnt) {
+      setupState.playerCount = cnt;
+      renderSetup();
+    }
+
+    function renderSetup() {
+      document.getElementById("setup-role-count").textContent = GAME_CONFIG.roles.length;
+
+      document.querySelectorAll(".setup-cnt-btn").forEach(btn => {
+        const c = Number(btn.dataset.count);
+        if (c === setupState.playerCount) {
+          btn.className = "setup-cnt-btn px-3.5 py-1.5 rounded-lg text-sm font-bold border bg-amber-500/20 border-amber-400 text-amber-200";
+        } else {
+          btn.className = "setup-cnt-btn px-3.5 py-1.5 rounded-lg text-sm font-bold border bg-slate-900 border-slate-700 text-slate-400 hover:text-white";
+        }
+      });
+
+      const slotsEl = document.getElementById("setup-player-slots");
+      slotsEl.innerHTML = "";
+
+      for (let i = 0; i < setupState.playerCount; i++) {
+        const slot = setupState.slots[i];
+        // Validate roleId still exists
+        if (!GAME_CONFIG.roles.some(r => r.id === slot.roleId)) {
+          slot.roleId = GAME_CONFIG.roles[0].id;
+        }
+        const pal = PLAYER_PALETTES[i % PLAYER_PALETTES.length];
+        const roleOptions = GAME_CONFIG.roles.map(r =>
+          `<option value="${r.id}" ${r.id === slot.roleId ? "selected" : ""}>${r.icon} ${r.name} (${r.tag || "自定义"}) - ${r.hp}HP / ${r.ku}裤 / ×${r.atkMult}攻</option>`
+        ).join("");
+
+        const card = document.createElement("div");
+        card.className = `rounded-xl p-3.5 border ${pal.border} bg-slate-900/75 flex flex-col gap-2.5`;
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-extrabold ${pal.badge}">P${i + 1}</span>
+            <div class="flex rounded-lg overflow-hidden border border-slate-700 text-xs font-bold">
+              <button onclick="updateSetupSlot(${i}, 'isAI', false)" class="px-2.5 py-1 ${!slot.isAI ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400'}">👤 人类</button>
+              <button onclick="updateSetupSlot(${i}, 'isAI', true)" class="px-2.5 py-1 ${slot.isAI ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}">🤖 AI</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 gap-2">
+            <input type="text" value="${escapeHtml(slot.name)}" maxlength="12"
+              onchange="updateSetupSlot(${i}, 'name', this.value)"
+              class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-400"
+              placeholder="输入玩家昵称" />
+            <select onchange="updateSetupSlot(${i}, 'roleId', this.value)"
+              class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-400">
+              ${roleOptions}
+            </select>
+          </div>
+        `;
+        slotsEl.appendChild(card);
+      }
+
+      const roleCardsEl = document.getElementById("setup-role-cards");
+      roleCardsEl.innerHTML = GAME_CONFIG.roles.map(r => `
+        <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 flex flex-col gap-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-100">${r.icon} ${r.name} <span class="text-[10px] text-amber-400 font-semibold">[${r.tag || "角色"}]</span></span>
+            <span class="text-[11px] text-slate-400">❤️${r.hp} · 👖${r.ku}/${r.kuMax} · ⚔️×${r.atkMult}</span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-snug">${escapeHtml(r.skillDesc || "")}</p>
+        </div>
+      `).join("");
+    }
+
+    function updateSetupSlot(idx, field, val) {
+      setupState.slots[idx][field] = val;
+      if (field === "isAI") {
+        if (val && setupState.slots[idx].name.startsWith("玩家")) {
+          setupState.slots[idx].name = `AI · 战士${idx + 1}`;
+        } else if (!val && setupState.slots[idx].name.startsWith("AI")) {
+          setupState.slots[idx].name = `玩家 ${idx + 1}`;
+        }
+      }
+      renderSetup();
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[s]));
+    }
+
+    /*************************************************************************
+     * 6. GAME LIFECYCLE & PHASE TRANSITIONS
+     *************************************************************************/
+    function startGame() {
+      if (state && state.aiTimer) clearTimeout(state.aiTimer);
+      state = createInitialState();
+      document.getElementById("view-setup").classList.add("hidden");
+      const gameEl = document.getElementById("view-game");
+      gameEl.classList.remove("hidden");
+      gameEl.classList.add("grid");
+      document.getElementById("top-phase-bar").classList.remove("hidden");
+      document.getElementById("top-phase-bar").classList.add("flex");
+      document.getElementById("btn-restart-top").classList.remove("hidden");
+
+      addLog(`⚔️ 战局开启！共 ${state.players.length} 名玩家踏入三层立体战场。`, "phase");
+      startRPSPhase();
+    }
+
+    function returnToSetup() {
+      if (state && state.aiTimer) clearTimeout(state.aiTimer);
+      closeModal();
+      document.getElementById("view-game").classList.add("hidden");
+      document.getElementById("view-game").classList.remove("grid");
+      document.getElementById("view-setup").classList.remove("hidden");
+      document.getElementById("top-phase-bar").classList.add("hidden");
+      document.getElementById("btn-restart-top").classList.add("hidden");
+      renderSetup();
+    }
+
+    // ---------- PHASE 1: RPS (猜拳获步) ----------
+    function startRPSPhase(isRetry = false) {
+      state.phase = "RPS";
+      state.rpsChoices = {};
+      if (!isRetry) {
+        state.rpsLastResult = null;
+        addLog(`━━━ 第 ${state.round} 回合 · 猜拳获步 ━━━`, "phase");
+      }
+
+      const alive = state.players.filter(p => p.alive);
+      state.rpsHumanQueue = alive.filter(p => !p.isAI).map(p => p.id);
+
+      // AI picks immediately
+      alive.filter(p => p.isAI).forEach(p => {
+        const g = ["rock", "scissors", "paper"][Math.floor(Math.random() * 3)];
+        state.rpsChoices[p.id] = g;
+      });
+
+      renderAll();
+
+      // If all AI (0 humans alive), auto-resolve shortly
+      if (state.rpsHumanQueue.length === 0) {
+        state.aiTimer = setTimeout(() => resolveRPS(), 750);
+      }
+    }
+
+    function submitHumanRPS(playerId, gesture) {
+      state.rpsChoices[playerId] = gesture;
+      state.rpsHumanQueue = state.rpsHumanQueue.filter(id => id !== playerId);
+      if (state.rpsHumanQueue.length === 0) {
+        resolveRPS();
+      } else {
+        renderAll();
+      }
+    }
+
+    function evaluateRPS(choicesMap) {
+      const ids = Object.keys(choicesMap).map(Number);
+      const unique = [...new Set(Object.values(choicesMap))];
+      if (unique.length === 1 || unique.length === 3) {
+        return { tie: true, winners: [], winGesture: null };
+      }
+      // Exactly 2 gestures
+      const has = g => unique.includes(g);
+      let winGesture = null;
+      if (has("rock") && has("scissors")) winGesture = "rock";
+      else if (has("scissors") && has("paper")) winGesture = "scissors";
+      else if (has("paper") && has("rock")) winGesture = "paper";
+
+      const winners = ids.filter(id => choicesMap[id] === winGesture);
+      return { tie: false, winners, winGesture };
+    }
+
+    function resolveRPS() {
+      const res = evaluateRPS(state.rpsChoices);
+      state.rpsLastResult = { choices: { ...state.rpsChoices }, ...res };
+
+      const summary = Object.entries(state.rpsChoices)
+        .map(([id, g]) => `${state.players[id].name}${GESTURES[g].icon}`)
+        .join(" vs ");
+
+      if (res.tie) {
+        addLog(`✊✌️🖐️ 猜拳平局 (${summary})，重新猜拳！`, "normal");
+        showToast("平局！所有人重新猜拳", "warn");
+        startRPSPhase(true);
+        return;
+      }
+
+      const winnerNames = res.winners.map(id => state.players[id].name).join("、");
+      addLog(`🏆 猜拳结果 (${summary}) → 【${winnerNames}】获胜，各得 1 步！`, "phase");
+
+      // Separate stealthed assassins who will act at the very end of the round
+      state.stealthWonRpsThisRound = res.winners.filter(id => state.players[id].stealthReadyNextRound);
+      const normalWinners = res.winners.filter(id => !state.players[id].stealthReadyNextRound);
+
+      if (normalWinners.length === 0) {
+        // Only stealthed assassin(s) won -> jump directly to action queue (which will append stealth actors)
+        buildFinalActionQueue([]);
+      } else if (normalWinners.length === 1) {
+        buildFinalActionQueue(normalWinners);
+      } else {
+        startInitiativePhase(normalWinners);
+      }
+    }
+
+    // ---------- PHASE 2: INITIATIVE (发言权争夺) ----------
+    function startInitiativePhase(winners) {
+      state.phase = "INITIATIVE";
+      state.initContenders = [...winners];
+      state.initRanked = [];
+      state.initSubPool = [...winners];
+      state.initSlotChoicesPending = false;
+      addLog(`⚖️ ${winners.map(id => state.players[id].name).join("、")} 同时获步，进入【发言权争夺】！`, "phase");
+      prepareNextInitiativeRPS();
+    }
+
+    function prepareNextInitiativeRPS() {
+      // Find who isn't ranked yet
+      const remaining = state.initContenders.filter(id => !state.initRanked.includes(id));
+      if (remaining.length <= 1) {
+        if (remaining.length === 1) state.initRanked.push(remaining[0]);
+        // Ranking finished! Let 1st place pick their turn slot
+        state.initSlotChoicesPending = true;
+        const firstPlayer = state.players[state.initRanked[0]];
+        addLog(`👑 ${firstPlayer.name} 赢得【第一解释权】，正在选择行动顺位...`, "phase");
+        renderAll();
+        if (firstPlayer.isAI) {
+          state.aiTimer = setTimeout(() => {
+            const slotIdx = chooseAIInitiativeSlot(firstPlayer, state.initRanked.length);
+            confirmInitiativeSlot(slotIdx);
+          }, 800);
+        }
+        return;
+      }
+
+      if (state.initSubPool.length <= 1) {
+        state.initSubPool = [...remaining];
+      }
+
+      state.initChoices = {};
+      state.initHumanQueue = state.initSubPool.filter(id => !state.players[id].isAI);
+      state.initSubPool.filter(id => state.players[id].isAI).forEach(id => {
+        state.initChoices[id] = ["rock", "scissors", "paper"][Math.floor(Math.random() * 3)];
+      });
+
+      renderAll();
+
+      if (state.initHumanQueue.length === 0) {
+        state.aiTimer = setTimeout(() => resolveInitiativeRPS(), 750);
+      }
+    }
+
+    function submitHumanInitiativeRPS(playerId, gesture) {
+      state.initChoices[playerId] = gesture;
+      state.initHumanQueue = state.initHumanQueue.filter(id => id !== playerId);
+      if (state.initHumanQueue.length === 0) {
+        resolveInitiativeRPS();
+      } else {
+        renderAll();
+      }
+    }
+
+    function resolveInitiativeRPS() {
+      const res = evaluateRPS(state.initChoices);
+      if (res.tie) {
+        showToast("发言权猜拳平局，重猜！", "warn");
+        prepareNextInitiativeRPS();
+        return;
+      }
+      if (res.winners.length === 1) {
+        // Sole winner claims next highest rank!
+        state.initRanked.push(res.winners[0]);
+        const remaining = state.initContenders.filter(id => !state.initRanked.includes(id));
+        state.initSubPool = [...remaining];
+        prepareNextInitiativeRPS();
+      } else {
+        // Multiple winners narrow down subpool
+        state.initSubPool = [...res.winners];
+        prepareNextInitiativeRPS();
+      }
+    }
+
+    function chooseAIInitiativeSlot(ai, totalSlots) {
+      // Smart AI: if can kill someone or grab artifact immediately, go 1st; if fragile or waiting, go last
+      const canKillNow = state.players.some(t => t.alive && !t.stealthed && t.id !== ai.id && t.loc === ai.loc && t.ku <= 0 && ai.knives >= 1);
+      if (canKillNow) return 0;
+      if (ai.loc === "sea_palace") return 0;
+      return Math.random() < 0.65 ? 0 : totalSlots - 1;
+    }
+
+    function confirmInitiativeSlot(chosenSlotIndex) {
+      // Place 1st-ranked player into chosenSlotIndex, fill other slots with remaining ranked players in order
+      const total = state.initRanked.length;
+      const ordered = new Array(total).fill(null);
+      const firstId = state.initRanked[0];
+      ordered[chosenSlotIndex] = firstId;
+
+      let nextRankPtr = 1;
+      for (let i = 0; i < total; i++) {
+        if (ordered[i] === null) {
+          ordered[i] = state.initRanked[nextRankPtr++];
+        }
+      }
+
+      addLog(`📋 行动顺位确定：${ordered.map((id, idx) => `${idx + 1}.${state.players[id].name}`).join(" → ")}`, "phase");
+      buildFinalActionQueue(ordered);
+    }
+
+    // ---------- PHASE 3: ACTION QUEUE (行动阶段) ----------
+    function buildFinalActionQueue(normalOrderedIds) {
+      state.phase = "ACTION";
+      state.actionQueue = normalOrderedIds.map(id => ({
+        playerId: id,
+        steps: 1,
+        isStealthReveal: false
+      }));
+
+      // Append any 突袭者 who stealthed last round! They reveal & act at the VERY END of this round
+      const stealthRevealers = state.players.filter(p => p.alive && p.stealthReadyNextRound);
+      stealthRevealers.forEach(p => {
+        const wonThisRound = state.stealthWonRpsThisRound.includes(p.id);
+        state.actionQueue.push({
+          playerId: p.id,
+          steps: 1 + (wonThisRound ? 1 : 0),
+          isStealthReveal: true
+        });
+      });
+
+      state.currentActorIdx = 0;
+      beginCurrentActorTurn();
+    }
+
+    function beginCurrentActorTurn() {
+      // Skip dead actors (e.g., if killed earlier in the same round)
+      while (state.currentActorIdx < state.actionQueue.length) {
+        const entry = state.actionQueue[state.currentActorIdx];
+        const actor = state.players[entry.playerId];
+        if (actor && actor.alive) {
+          state.currentStepsLeft = entry.steps;
+          if (entry.isStealthReveal) {
+            actor.stealthed = false;
+            actor.stealthReadyNextRound = false;
+            addLog(`🥷 【突袭现身】${actor.name} 从暗影中骤然现身！获得 ${entry.steps} 步连动机会！`, "skill");
+          }
+          renderAll();
+          if (actor.isAI) {
+            state.aiTimer = setTimeout(() => executeAIStep(actor), 950);
+          }
+          return;
+        }
+        state.currentActorIdx++;
+      }
+
+      // All actors finished -> End of Round resolution
+      startEndOfRound();
+    }
+
+    function consumeStep(actor) {
+      if (checkVictory()) return;
+      state.currentStepsLeft -= 1;
+      if (state.currentStepsLeft > 0 && actor.alive) {
+        renderAll();
+        if (actor.isAI) {
+          state.aiTimer = setTimeout(() => executeAIStep(actor), 900);
+        }
+      } else {
+        state.currentActorIdx++;
+        beginCurrentActorTurn();
+      }
+    }
+
+    // ---------- PHASE 4: END OF ROUND (半空坠落 + 氧气结算) ----------
+    function startEndOfRound() {
+      if (checkVictory()) return;
+
+      // 1. Check players stuck in sky_mid (天一)
+      state.pendingFallPlayers = state.players
+        .filter(p => p.alive && p.loc === "sky_mid")
+        .map(p => p.id);
+
+      if (state.pendingFallPlayers.length > 0) {
+        state.phase = "END_FALL";
+        processNextSkyMidFall();
+      } else {
+        resolveOxygenAndNextRound();
+      }
+    }
+
+    function processNextSkyMidFall() {
+      if (state.pendingFallPlayers.length === 0) {
+        resolveOxygenAndNextRound();
+        return;
+      }
+      const pid = state.pendingFallPlayers[0];
+      const p = state.players[pid];
+      if (!p.alive || p.loc !== "sky_mid") {
+        state.pendingFallPlayers.shift();
+        processNextSkyMidFall();
+        return;
+      }
+
+      renderAll();
+
+      if (p.isAI) {
+        state.aiTimer = setTimeout(() => {
+          // AI prefers sea_palace if artifacts left & has O2, else home
+          const hasUnclaimed = Object.values(state.artifacts).some(a => a.ownerId === null);
+          let dest = p.homeLoc;
+          if (hasUnclaimed && (p.hasO2Tank || p.hasFrogMask)) dest = "sea_palace";
+          else if (p.hp < p.maxHp) dest = "land_police";
+          confirmSkyMidFall(p.id, dest);
+        }, 750);
+      } else {
+        openSkyMidFallModal(p);
+      }
+    }
+
+    function confirmSkyMidFall(playerId, destLocId) {
+      const p = state.players[playerId];
+      closeModal();
+      p.loc = destLocId;
+      const destObj = getLoc(destLocId);
+      if (destObj.layer === "sea") {
+        p.o2GraceTurn = true;
+        p.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns;
+      } else {
+        p.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns;
+        p.o2GraceTurn = false;
+      }
+      addLog(`🌤️ ${p.name} 从【天一·半空】自动无伤坠落至【${destObj.name}】！`, "normal");
+      state.pendingFallPlayers.shift();
+      processNextSkyMidFall();
+    }
+
+    function resolveOxygenAndNextRound() {
+      state.players.filter(p => p.alive).forEach(p => {
+        const layer = getLoc(p.loc).layer;
+        if (layer === "land") {
+          p.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns;
+          p.o2GraceTurn = false;
+        } else if (layer === "sea" || layer === "sky") {
+          if (p.hasFrogMask) {
+            p.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns;
+            p.o2GraceTurn = false;
+          } else if (p.o2GraceTurn) {
+            // Arrival round does not count!
+            p.o2GraceTurn = false;
+          } else {
+            p.o2Turns -= 1;
+            if (p.o2Turns <= 0) {
+              killPlayer(p, `在【${getLoc(p.loc).name}】缺氧窒息身亡！`);
+            } else if (p.o2Turns === 1) {
+              addLog(`⚠️ 警报：${p.name} 氧气仅剩 1 回合！下回合末前必须呼吸或回陆地！`, "combat");
+            }
+          }
+        }
+      });
+
+      if (checkVictory()) return;
+
+      state.round += 1;
+      startRPSPhase(false);
+    }
+
+    function killPlayer(player, reasonText) {
+      player.alive = false;
+      player.hp = 0;
+      player.stealthed = false;
+      player.stealthReadyNextRound = false;
+      addLog(`💀 【阵亡】${player.name} ${reasonText}`, "death");
+      showToast(`💀 ${player.name} 阵亡！`, "danger");
+    }
+
+    function checkVictory() {
+      const alive = state.players.filter(p => p.alive);
+      if (alive.length <= 1) {
+        state.phase = "GAME_OVER";
+        renderAll();
+        openVictoryModal(alive[0] || null);
+        return true;
+      }
+      return false;
+    }
+
+    /*************************************************************************
+     * 7. ATOMIC PLAYER ACTIONS IMPLEMENTATION
+     *************************************************************************/
+    function performMove(actor, destLocId, carriedIds = [], isRushAttack = false) {
+      const destObj = getLoc(destLocId);
+      const fromObj = getLoc(actor.loc);
+      const hasLadder = actor.artifacts.includes("sq4");
+
+      // Check danger type
+      const reach = getReachableDestinations(actor).find(r => r.locId === destLocId);
+      const dangerType = reach ? reach.dangerType : "safe";
+
+      // Move actor + valid carried hostages
+      const movers = [actor];
+      const carriedNames = [];
+      carriedIds.forEach(cid => {
+        const target = state.players[cid];
+        if (target && target.alive && !target.stealthed && target.loc === actor.loc && canHostileInteract(actor, target).ok) {
+          movers.push(target);
+          carriedNames.push(target.name);
+        }
+      });
+
+      movers.forEach(m => {
+        const prevLayer = getLoc(m.loc).layer;
+        m.loc = destLocId;
+        if (destObj.layer === "land") {
+          m.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns;
+          m.o2GraceTurn = false;
+        } else if (prevLayer === "land" || m.loc === "sky_mid") {
+          // Entering oxygen zone from land: arrival turn doesn't count
+          m.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns;
+          m.o2GraceTurn = true;
+        }
+      });
+
+      const carryStr = carriedNames.length > 0 ? `（强制挟持了 ${carriedNames.join("、")}！）` : "";
+      addLog(`🏃 ${actor.name} 从【${fromObj.name}】${isRushAttack ? "⚡突进" : "移动"}至【${destObj.name}】${carryStr}`, carriedNames.length > 0 ? "skill" : "normal");
+
+      // Apply fall consequences if high-altitude jump without ladder
+      if (dangerType === "fall_hp" && !hasLadder) {
+        const dmg = GAME_CONFIG.settings.skyFallDamage;
+        movers.forEach(m => {
+          m.hp = Number((m.hp - dmg).toFixed(2));
+          addLog(`💥 ${m.name} 从高空直坠陆地，摔掉 ${dmg} HP！（剩余 ${formatNum(Math.max(0, m.hp))} HP）`, "combat");
+          if (m.hp <= 0) killPlayer(m, "从高空摔成重伤身亡！");
+        });
+      } else if (dangerType === "fall_o2" && !hasLadder) {
+        movers.forEach(m => {
+          if (m.hasO2Tank) {
+            m.hasO2Tank = false;
+            addLog(`🫧 ${m.name} 从高空跳入海中虽无外伤，但【氧气瓶摔坏】！需抢夺他人氧气瓶方能呼吸！`, "combat");
+          }
+        });
+      }
+
+      if (checkVictory()) return;
+
+      if (isRushAttack && actor.alive) {
+        // Trigger free attack at new location (SQ2 利刃)
+        if (actor.isAI) {
+          const didAtk = tryAIFreeAttack(actor);
+          if (!didAtk) addLog(`⚡ ${actor.name} 突进后周围无有效攻击目标。`, "normal");
+          consumeStep(actor);
+        } else {
+          openRushFreeAttackModal(actor);
+        }
+      } else {
+        consumeStep(actor);
+      }
+    }
+
+    function performWearPants(actor) {
+      if (actor.hasFrogMask) {
+        showToast("装备青蛙呼吸面罩后裤子上限锁定为 0！", "warn");
+        return;
+      }
+      if (actor.ku >= actor.kuMax) {
+        showToast("你的裤子已经穿满了！", "warn");
+        return;
+      }
+      actor.ku = Math.min(actor.kuMax, Number((actor.ku + 1).toFixed(2)));
+      addLog(`👖 ${actor.name} 穿了 1 条裤子（当前 ${formatNum(actor.ku)}/${formatNum(actor.kuMax)}）。`, "normal");
+      consumeStep(actor);
+    }
+
+    function performDrawKnife(actor) {
+      actor.knives += 1;
+      addLog(`🔪 ${actor.name} 随时随地拔出 1 把刀（当前持有 ${actor.knives} 把）。`, "normal");
+      consumeStep(actor);
+    }
+
+    function performStealKnife(actor, targetId) {
+      const target = state.players[targetId];
+      if (target.knives <= 0) return;
+      target.knives -= 1;
+      actor.knives += 1;
+      addLog(`🫳 ${actor.name} 贴脸抢走了 ${target.name} 的 1 把刀！`, "combat");
+      consumeStep(actor);
+    }
+
+    function performStealO2(actor, targetId) {
+      const target = state.players[targetId];
+      if (!target.hasO2Tank) return;
+      target.hasO2Tank = false;
+      actor.hasO2Tank = true;
+      addLog(`🫧 ${actor.name} 贴脸抢走了 ${target.name} 的完好氧气瓶！`, "combat");
+      consumeStep(actor);
+    }
+
+    function performPinchFace(actor, targetId) {
+      const target = state.players[targetId];
+      if (!target.pinchedBy.includes(actor.id)) {
+        target.pinchedBy.push(actor.id);
+      }
+      addLog(`🤏 ${actor.name} 贴脸捏了 ${target.name} 的🐷猪脸！此后可对其发动正常互动。`, "skill");
+      consumeStep(actor);
+    }
+
+    function performBreathe(actor) {
+      if (!actor.hasO2Tank && !actor.hasFrogMask) {
+        showToast("你的氧气瓶已损坏，无法呼吸！快去抢别人的氧气瓶或返回陆地！", "danger");
+        return;
+      }
+      actor.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns;
+      actor.o2GraceTurn = true;
+      addLog(`😮‍💨 ${actor.name} 深吸了一口氧气（呼吸倒计时重置为 ${GAME_CONFIG.settings.oxygenMaxTurns} 回合）。`, "normal");
+      consumeStep(actor);
+    }
+
+    function performAttack(actor, targetType, targetId, attackMode, isFree = false) {
+      // attackMode: 'strip' (扒裤) | 'kill' (咔)
+      const hasBigKnife = actor.artifacts.includes("sq1");
+      const power = Number((1 * actor.atkMult * (hasBigKnife ? 2 : 1)).toFixed(2));
+
+      // Check Ruins 50% miss chance (only for players in sea_ruins)
+      if (targetType === "player") {
+        const target = state.players[targetId];
+        if (target.loc === "sea_ruins") {
+          const roll = Math.random();
+          if (roll > GAME_CONFIG.settings.ruinsHitChance) {
+            addLog(`💨 【遗迹闪避】${actor.name} 对 ${target.name} 发动【${attackMode === "strip" ? "扒裤" : "咔"}】，但被遗迹掩体挡下（未命中）！`, "combat");
+            showToast(`遗迹 50% 判定：未命中！`, "warn");
+            if (!isFree) consumeStep(actor);
+            else renderAll();
+            return;
+          }
+        }
+
+        if (attackMode === "strip") {
+          const before = target.ku;
+          target.ku = Math.max(0, Number((target.ku - power).toFixed(2)));
+          addLog(`👖💥 ${actor.name} 扒掉了 ${target.name} 的裤子（-${formatNum(power)}，${formatNum(before)} → ${formatNum(target.ku)}）！`, "combat");
+        } else {
+          const before = target.hp;
+          target.hp = Math.max(0, Number((target.hp - power).toFixed(2)));
+          addLog(`🔪🩸 ${actor.name} 对 ${target.name} 发动【咔】斩杀！（-${formatNum(power)} HP，${formatNum(before)} → ${formatNum(target.hp)}）`, "combat");
+          if (target.hp <= 0) {
+            killPlayer(target, `被 ${actor.name} 一刀【咔】掉！`);
+          }
+        }
+      } else if (targetType === "warden") {
+        // Attacking Prison Warden NPC
+        if (attackMode === "strip") {
+          const before = state.warden.ku;
+          state.warden.ku = Math.max(0, Number((state.warden.ku - power).toFixed(2)));
+          addLog(`👮💥 ${actor.name} 扒掉了【典狱长】的裤子（-${formatNum(power)}，剩余 ${formatNum(state.warden.ku)} 裤）！`, "combat");
+        } else {
+          const before = state.warden.hp;
+          state.warden.hp = Math.max(0, Number((state.warden.hp - power).toFixed(2)));
+          addLog(`👮🩸 ${actor.name} 对【典狱长】发动【咔】！（-${formatNum(power)} HP，剩余 ${formatNum(state.warden.hp)} HP）`, "combat");
+          if (state.warden.hp <= 0) {
+            // Warden defeated -> free all prisoners in land_prison_in!
+            const freed = state.players.filter(p => p.alive && p.loc === "land_prison_in");
+            freed.forEach(p => { p.loc = "land_prison_out"; });
+            addLog(`🔓 【越狱成功】${actor.name} 击杀了典狱长！${freed.length > 0 ? freed.map(p => p.name).join("、") + " 重获自由来到监狱·外！" : "新典狱长已刷新！"}`, "artifact");
+            // Respawn fresh warden
+            state.warden = {
+              ku: GAME_CONFIG.settings.wardenDefaultKu,
+              maxKu: GAME_CONFIG.settings.wardenDefaultKu,
+              hp: GAME_CONFIG.settings.wardenDefaultHp,
+              maxHp: GAME_CONFIG.settings.wardenDefaultHp,
+              enhanced: false
+            };
+          }
+        }
+      }
+
+      if (!isFree) consumeStep(actor);
+      else {
+        if (!checkVictory()) consumeStep(actor);
+      }
+    }
+
+    function performPoliceHeal(actor) {
+      const amt = GAME_CONFIG.settings.policeHealAmount;
+      const before = actor.hp;
+      actor.hp = Math.min(actor.maxHp, Number((actor.hp + amt).toFixed(2)));
+      addLog(`🏥 ${actor.name} 在警察局【搬运尸体】疗伤，恢复 ${amt} HP（${formatNum(before)} → ${formatNum(actor.hp)}）。`, "normal");
+      consumeStep(actor);
+    }
+
+    function performSelfSurrender(actor) {
+      actor.loc = "land_prison_in";
+      addLog(`⛓️ ${actor.name} 在警察局主动【自首】，直接进入监狱·内！`, "normal");
+      consumeStep(actor);
+    }
+
+    function performFrogMask(actor) {
+      actor.hasFrogMask = true;
+      actor.ku = 0;
+      actor.kuMax = 0;
+      actor.hp = 0.5;
+      actor.maxHp = 0.5;
+      actor.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns;
+      addLog(`🐸 ${actor.name} 装备了【青蛙呼吸面罩】！永久水下呼吸，但裤子永久归 0，HP 强制锁定为 0.5！`, "artifact");
+      consumeStep(actor);
+    }
+
+    function performDigRuins(actor) {
+      const chance = GAME_CONFIG.settings.ruinsDigSuccessChance;
+      const success = Math.random() < chance;
+      if (success) {
+        if (actor.hasFrogMask) {
+          addLog(`🏺 ${actor.name} 挖到了遗迹宝藏，但因佩戴青蛙面罩无法增加裤子上限！`, "artifact");
+        } else {
+          actor.kuMax = Math.max(actor.kuMax, GAME_CONFIG.settings.ruinsDigMaxKu);
+          addLog(`🏺✨ 【遗迹大捷】${actor.name} 成功挖出远古宝藏！裤子上限永久提升至 ${actor.kuMax} 条（需逐条穿戴）！`, "artifact");
+          showToast(`🎉 挖掘成功！裤子上限提升至 ${actor.kuMax}！`, "success");
+        }
+      } else {
+        addLog(`🏺 ${actor.name} 在遗迹挖掘了一番，但只挖到一堆碎石（失败）。`, "normal");
+        showToast("挖掘未发现宝藏", "info");
+      }
+      consumeStep(actor);
+    }
+
+    function performDragonArtifact(actor, sqId) {
+      const art = state.artifacts[sqId];
+      if (!art || art.ownerId !== null) return;
+      art.progress += 1;
+      if (art.progress >= art.required) {
+        art.ownerId = actor.id;
+        actor.artifacts.push(sqId);
+        addLog(`🐉✨ 【神器出世】${actor.name} 完成了最后一步，永久夺得全服唯一神器【${art.icon} ${art.name}】！`, "artifact");
+        showToast(`🐉 ${actor.name} 夺得神器【${art.name}】！`, "success");
+      } else {
+        addLog(`🐉 ${actor.name} 推进了龙宫神器【${art.icon} ${art.name}】的夺取进度（${art.progress}/${art.required}）！`, "artifact");
+      }
+      consumeStep(actor);
+    }
+
+    function performStealthSkill(actor) {
+      actor.stealthed = true;
+      actor.stealthReadyNextRound = true;
+      addLog(`🥷 【暗影隐身】${actor.name} 凭空消失在战场视野中！下回合全员行动完后将突袭现身！`, "skill");
+      consumeStep(actor);
+    }
+
+    function performStormSkill(actor, mode, targetOrLocId, destLocId) {
+      // mode: 'single_free' (0 step, 1 charge) | 'area_step' (1 step, 1 charge)
+      if (actor.stormCharges <= 0) return;
+      actor.stormCharges -= 1;
+      const destObj = getLoc(destLocId);
+
+      if (mode === "single_free") {
+        const target = state.players[targetOrLocId];
+        target.loc = destLocId;
+        addLog(`🌪️ 【乱流风暴·免费】${actor.name} 远程呼风唤雨，将 ${target.name} 强行吹至【${destObj.name}】！（剩余 ${actor.stormCharges} 次）`, "skill");
+        renderAll();
+        // Does NOT consume step!
+      } else {
+        const victims = state.players.filter(p => p.alive && !p.stealthed && p.loc === targetOrLocId && (p.id === actor.id || canHostileInteract(actor, p).ok));
+        victims.forEach(v => { v.loc = destLocId; });
+        addLog(`🌪️💥 【群体乱流风暴】${actor.name} 消耗 1 步，将【${getLoc(targetOrLocId).name}】内的 ${victims.map(v => v.name).join("、") || "空气"} 全部吹飞至【${destObj.name}】！`, "skill");
+        consumeStep(actor);
+      }
+    }
+
+    function performWishStep(actor) {
+      actor.wishProgress += 1;
+      const req = GAME_CONFIG.settings.wishRequiredSteps;
+      if (actor.wishProgress >= req) {
+        actor.wishProgress = 0;
+        addLog(`🌠✨ ${actor.name} 在许愿池凑齐了 ${req} 步，唤醒了神龙许愿！`, "wish");
+        if (actor.isAI) {
+          executeAIWish(actor);
+        } else {
+          openWishModal(actor);
+        }
+      } else {
+        addLog(`🌠 ${actor.name} 在许愿池虔诚祈祷（个人进度 ${actor.wishProgress}/${req}）。`, "wish");
+        consumeStep(actor);
+      }
+    }
+
+    function performSkip(actor) {
+      addLog(`⏭️ ${actor.name} 选择跳过本步行动。`, "normal");
+      consumeStep(actor);
+    }
+
+    /*************************************************************************
+     * 8. INTERACTIVE ARREST (BO3 RPS) & WISH EXECUTION
+     *************************************************************************/
+    let arrestState = null;
+
+    function startArrestBattle(actor, targetId) {
+      const target = state.players[targetId];
+      arrestState = {
+        actorId: actor.id,
+        targetId: target.id,
+        actorWins: 0,
+        targetWins: 0,
+        subRound: 1,
+        choices: {},
+        humanQueue: [],
+        lastLog: `${actor.name} 发起远程逮捕！双方展开三局两胜猜拳，败者立刻入狱！`
+      };
+      addLog(`🚓 ${actor.name} 在警察局对 ${target.name} 发起远程【逮捕】（三局两胜猜拳）！`, "combat");
+      prepareArrestSubRound();
+    }
+
+    function prepareArrestSubRound() {
+      const a = state.players[arrestState.actorId];
+      const t = state.players[arrestState.targetId];
+      arrestState.choices = {};
+      arrestState.humanQueue = [];
+      if (!a.isAI) arrestState.humanQueue.push(a.id);
+      else arrestState.choices[a.id] = ["rock", "scissors", "paper"][Math.floor(Math.random() * 3)];
+
+      if (!t.isAI) arrestState.humanQueue.push(t.id);
+      else arrestState.choices[t.id] = ["rock", "scissors", "paper"][Math.floor(Math.random() * 3)];
+
+      if (arrestState.humanQueue.length === 0) {
+        // AI vs AI quick auto-resolve
+        renderArrestModal();
+        setTimeout(() => resolveArrestSubRound(), 650);
+      } else {
+        renderArrestModal();
+      }
+    }
+
+    function submitArrestGesture(playerId, gesture) {
+      arrestState.choices[playerId] = gesture;
+      arrestState.humanQueue = arrestState.humanQueue.filter(id => id !== playerId);
+      if (arrestState.humanQueue.length === 0) {
+        resolveArrestSubRound();
+      } else {
+        renderArrestModal();
+      }
+    }
+
+    function resolveArrestSubRound() {
+      const a = state.players[arrestState.actorId];
+      const t = state.players[arrestState.targetId];
+      const ga = arrestState.choices[a.id];
+      const gt = arrestState.choices[t.id];
+      const res = evaluateRPS({ [a.id]: ga, [t.id]: gt });
+
+      if (res.tie) {
+        arrestState.lastLog = `第 ${arrestState.subRound} 局：${a.name}${GESTURES[ga].icon} vs ${t.name}${GESTURES[gt].icon} → 平局重猜！`;
+        prepareArrestSubRound();
+        return;
+      }
+
+      if (res.winners.includes(a.id)) {
+        arrestState.actorWins += 1;
+        arrestState.lastLog = `第 ${arrestState.subRound} 局：${a.name}${GESTURES[ga].icon} 击败 ${t.name}${GESTURES[gt].icon}！`;
+      } else {
+        arrestState.targetWins += 1;
+        arrestState.lastLog = `第 ${arrestState.subRound} 局：${t.name}${GESTURES[gt].icon} 反杀 ${a.name}${GESTURES[ga].icon}！`;
+      }
+      arrestState.subRound += 1;
+
+      if (arrestState.actorWins >= 2 || arrestState.targetWins >= 2) {
+        const loser = arrestState.actorWins >= 2 ? t : a;
+        const winner = arrestState.actorWins >= 2 ? a : t;
+        loser.loc = "land_prison_in";
+        loser.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns;
+        loser.o2GraceTurn = false;
+        addLog(`⛓️ 【逮捕落槌】${winner.name} (${arrestState.actorWins}:${arrestState.targetWins}) 胜出！${loser.name} 被关入【监狱·内】！`, "combat");
+        showToast(`⛓️ ${loser.name} 猜拳落败，被关进监狱！`, "warn");
+        closeModal();
+        const originalActor = state.players[arrestState.actorId];
+        arrestState = null;
+        consumeStep(originalActor);
+      } else {
+        prepareArrestSubRound();
+      }
+    }
+
+    function renderArrestModal() {
+      const a = state.players[arrestState.actorId];
+      const t = state.players[arrestState.targetId];
+      const nextHumanId = arrestState.humanQueue[0];
+      const nextHuman = nextHumanId !== undefined ? state.players[nextHumanId] : null;
+
+      openModal(`
+        <div class="p-5 sm:p-6">
+          <div class="text-center mb-4">
+            <span class="px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-bold">🚓 警察局远程逮捕 · 三局两胜</span>
+            <h3 class="text-xl font-black text-white mt-2">${a.name} 🆚 ${t.name}</h3>
+            <div class="mt-3 flex items-center justify-center gap-6 text-2xl font-black">
+              <div class="${a.palette.text}">${a.name}: <span class="text-white">${arrestState.actorWins}</span></div>
+              <span class="text-slate-600">:</span>
+              <div class="${t.palette.text}"><span class="text-white">${arrestState.targetWins}</span> :${t.name}</div>
+            </div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-700 text-center text-xs sm:text-sm text-amber-200 mb-4">
+            ${arrestState.lastLog}
+          </div>
+          ${nextHuman ? `
+            <div class="text-center">
+              <p class="text-sm font-bold text-slate-200 mb-3">请 <span class="${nextHuman.palette.text}">${nextHuman.name}</span> 选择手势（秘密提交）：</p>
+              <div class="grid grid-cols-3 gap-3">
+                ${Object.values(GESTURES).map(g => `
+                  <button onclick="submitArrestGesture(${nextHuman.id}, '${g.id}')" class="btn-tac py-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 flex flex-col items-center gap-1">
+                    <span class="text-3xl">${g.icon}</span>
+                    <span class="text-sm font-bold text-white">${g.name}</span>
+                  </button>
+                `).join("")}
+              </div>
+            </div>
+          ` : `
+            <div class="text-center py-4 text-sm text-sky-300 animate-pulse font-bold">🤖 AI 正在激烈猜拳对决中...</div>
+          `}
+        </div>
+      `);
+    }
+
+    // ---------- WISH EXECUTION ----------
+    function executeWishEffect(actor, wishId, param1 = null, param2 = null) {
+      closeModal();
+      if (wishId === "swap") {
+        const p1 = state.players[param1];
+        const p2 = state.players[param2];
+        const tmp = p1.loc;
+        p1.loc = p2.loc;
+        p2.loc = tmp;
+        [p1, p2].forEach(p => {
+          const lyr = getLoc(p.loc).layer;
+          if (lyr === "land") { p.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns; p.o2GraceTurn = false; }
+          else { p.o2GraceTurn = true; }
+        });
+        addLog(`🌠 【移形换影】${actor.name} 许愿将 ${p1.name} 与 ${p2.name} 的位置瞬间对调！`, "wish");
+      } else if (wishId === "airtax") {
+        let affected = [];
+        state.players.filter(p => p.alive && p.id !== actor.id && !p.hasFrogMask).forEach(p => {
+          const lyr = getLoc(p.loc).layer;
+          if (lyr === "sea" || lyr === "sky") {
+            p.o2GraceTurn = false;
+            p.o2Turns = Math.max(0, p.o2Turns - 2);
+            affected.push(p.name);
+            if (p.o2Turns <= 0) {
+              killPlayer(p, "因【空气税】愿望瞬间抽干氧气而窒息身亡！");
+            }
+          }
+        });
+        addLog(`🌠 【空气税】${actor.name} 抽干了高空与深海的空气！受影响者：${affected.length ? affected.join("、") : "无人"}！`, "wish");
+      } else if (wishId === "warrant") {
+        const target = state.players[param1];
+        target.loc = "land_prison_in";
+        target.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns;
+        target.o2GraceTurn = false;
+        state.warden.ku = GAME_CONFIG.settings.wardenEnhancedKu;
+        state.warden.maxKu = GAME_CONFIG.settings.wardenEnhancedKu;
+        state.warden.enhanced = true;
+        addLog(`🌠 【通缉令】${actor.name} 无视一切防御，将 ${target.name} 强制关入监狱·内，典狱长护甲暴涨至 ${state.warden.ku} 裤！`, "wish");
+      } else if (wishId === "disarm") {
+        state.players.filter(p => p.alive).forEach(p => {
+          p.knives = 0;
+          p.hasO2Tank = false;
+          p.artifacts = [];
+          p.pinchedBy = [];
+        });
+        Object.values(state.artifacts).forEach(a => {
+          a.ownerId = null;
+          a.progress = 0;
+        });
+        addLog(`🌠 【缴械风暴】${actor.name} 掀翻棋盘！全图刀、氧气瓶清空，所有龙宫神器重置归位！`, "wish");
+      } else if (wishId === "blackhole") {
+        const destObj = getLoc(param1);
+        state.players.filter(p => p.alive).forEach(p => {
+          p.loc = param1;
+          if (destObj.layer === "land") { p.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns; p.o2GraceTurn = false; }
+          else { p.o2GraceTurn = true; }
+        });
+        addLog(`🌠 【强制贴脸】${actor.name} 发动黑洞引力，将全场所有存活玩家瞬间吸入【${destObj.name}】！`, "wish");
+      } else if (wishId === "revive") {
+        const target = state.players[param1];
+        const destObj = getLoc(param2);
+        target.alive = true;
+        target.hp = 1;
+        target.maxHp = Math.max(1, target.maxHp);
+        target.ku = 1;
+        target.kuMax = Math.max(1, target.kuMax);
+        target.knives = 0;
+        target.hasO2Tank = true;
+        target.hasFrogMask = false;
+        target.loc = param2;
+        target.o2Turns = GAME_CONFIG.settings.oxygenMaxTurns;
+        target.o2GraceTurn = destObj.layer !== "land";
+        if (!target.cannotAttackIds.includes(actor.id)) target.cannotAttackIds.push(actor.id);
+        addLog(`🌠 【轮回转生】${actor.name} 在【${destObj.name}】复活了 ${target.name}（1裤1命，本局不可攻击救命恩人）！`, "wish");
+      }
+
+      if (!checkVictory()) consumeStep(actor);
+    }
+
+    /*************************************************************************
+     * 9. SMART AI BOT BRAIN
+     *************************************************************************/
+    function executeAIStep(ai) {
+      if (!ai.alive || state.phase !== "ACTION") return;
+
+      const locObj = getLoc(ai.loc);
+      const aliveEnemies = state.players.filter(p => p.alive && !p.stealthed && p.id !== ai.id);
+      const sameLocEnemies = aliveEnemies.filter(p => p.loc === ai.loc);
+
+      // 0. Stormer free skill opportunity (before spending step)
+      if (ai.skillType === "storm" && ai.stormCharges > 0) {
+        const threat = aliveEnemies.find(e =>
+          (e.loc === "sea_palace" || e.loc === "sky_wish" || e.loc === "land_police") &&
+          canHostileInteract(ai, e).ok
+        );
+        if (threat) {
+          const sameLayerLocs = getAllLocations().filter(l => l.layer === getLoc(threat.loc).layer && l.id !== threat.loc && l.id !== "land_prison_in" && l.id !== "sky_mid");
+          if (sameLayerLocs.length > 0) {
+            const dest = sameLayerLocs[Math.floor(Math.random() * sameLayerLocs.length)].id;
+            performStormSkill(ai, "single_free", threat.id, dest);
+            // Continue AI's actual step shortly
+            state.aiTimer = setTimeout(() => executeAIStep(ai), 700);
+            return;
+          }
+        }
+      }
+
+      // 1. CRITICAL OXYGEN SURVIVAL
+      if ((locObj.layer === "sea" || locObj.layer === "sky") && !ai.hasFrogMask && !ai.o2GraceTurn && ai.o2Turns <= 1) {
+        if (ai.hasO2Tank) {
+          performBreathe(ai);
+          return;
+        }
+        // Try stealing an O2 tank at same loc
+        const o2Donor = sameLocEnemies.find(e => e.hasO2Tank && canHostileInteract(ai, e).ok);
+        if (o2Donor) {
+          performStealO2(ai, o2Donor.id);
+          return;
+        }
+        // Try escaping to land safely
+        const safeLand = getReachableDestinations(ai).find(d => getLoc(d.locId).layer === "land" && d.dangerType === "safe");
+        if (safeLand) {
+          performMove(ai, safeLand.locId, []);
+          return;
+        }
+      }
+
+      // 2. ESCAPE PRISON
+      if (ai.loc === "land_prison_in") {
+        if (state.warden.ku > 0) {
+          performAttack(ai, "warden", null, "strip");
+        } else if (ai.knives === 0) {
+          performDrawKnife(ai);
+        } else {
+          performAttack(ai, "warden", null, "kill");
+        }
+        return;
+      }
+
+      // 3. ASCEND FROM SKY_MID
+      if (ai.loc === "sky_mid") {
+        performMove(ai, "sky_wish", []);
+        return;
+      }
+
+      // 4. IMMEDIATE KILL AT SAME LOCATION
+      const killable = sameLocEnemies.find(e => e.ku <= 0 && canAttackTarget(ai, e).ok);
+      if (killable && ai.knives >= 1) {
+        performAttack(ai, "player", killable.id, "kill");
+        return;
+      }
+
+      // 5. NEED PINCH PIG FACE FOR TARGET AT SAME LOCATION
+      const pigEnemy = sameLocEnemies.find(e => e.artifacts.includes("sq3") && !e.pinchedBy.includes(ai.id));
+      if (pigEnemy) {
+        performPinchFace(ai, pigEnemy.id);
+        return;
+      }
+
+      // 6. SQ2 利刃 RUSH ATTACK OPPORTUNITY
+      if (ai.artifacts.includes("sq2")) {
+        const reaches = getReachableDestinations(ai).filter(d => d.dangerType === "safe");
+        for (const r of reaches) {
+          const prey = aliveEnemies.find(e => e.loc === r.locId && canAttackTarget({ ...ai, loc: r.locId }, e).ok && (e.ku <= 0 ? ai.knives >= 1 : true));
+          if (prey) {
+            performMove(ai, r.locId, [], true);
+            return;
+          }
+        }
+      }
+
+      // 7. STRIP PANTS AT SAME LOCATION OR DRAW KNIFE IF TARGET ALREADY EXPOSED
+      if (killable && ai.knives === 0) {
+        performDrawKnife(ai);
+        return;
+      }
+      const strippable = sameLocEnemies.find(e => e.ku > 0 && canAttackTarget(ai, e).ok);
+      if (strippable && Math.random() < 0.78) {
+        performAttack(ai, "player", strippable.id, "strip");
+        return;
+      }
+
+      // 8. PROTECT SELF IF EXPOSED (0 pants & not frog mask)
+      if (ai.ku <= 0 && !ai.hasFrogMask && ai.kuMax > 0 && sameLocEnemies.length > 0) {
+        performWearPants(ai);
+        return;
+      }
+
+      // 9. ASSASSIN STEALTH SETUP
+      if (ai.skillType === "stealth" && !ai.stealthed && !ai.stealthReadyNextRound && Math.random() < 0.32) {
+        performStealthSkill(ai);
+        return;
+      }
+
+      // 10. LOCATION-SPECIFIC HIGH-VALUE ACTIONS
+      if (ai.loc === "sea_palace") {
+        const priority = ["sq2", "sq1", "sq3", "sq4"];
+        const targetArt = priority.find(id => state.artifacts[id].ownerId === null);
+        if (targetArt) {
+          performDragonArtifact(ai, targetArt);
+          return;
+        }
+      }
+      if (ai.loc === "sky_wish") {
+        performWishStep(ai);
+        return;
+      }
+      if (ai.loc === "land_police") {
+        if (ai.hp < ai.maxHp) {
+          performPoliceHeal(ai);
+          return;
+        }
+        const arrestable = aliveEnemies.find(e => e.loc !== "land_prison_in" && canHostileInteract(ai, e).ok);
+        if (arrestable && Math.random() < 0.5) {
+          startArrestBattle(ai, arrestable.id);
+          return;
+        }
+      }
+      if (ai.loc === "sea_ruins" && ai.kuMax < GAME_CONFIG.settings.ruinsDigMaxKu && !ai.hasFrogMask && Math.random() < 0.6) {
+        performDigRuins(ai);
+        return;
+      }
+
+      // 11. DRAW KNIFE EARLY IF UNARMED
+      if (ai.knives === 0 && Math.random() < 0.65) {
+        performDrawKnife(ai);
+        return;
+      }
+
+      // 12. WEAR PANTS IF BELOW MAX
+      if (ai.ku < ai.kuMax && !ai.hasFrogMask && Math.random() < 0.3) {
+        performWearPants(ai);
+        return;
+      }
+
+      // 13. STRATEGIC MOVEMENT (Chase weak enemy or dive for artifacts)
+      const safeMoves = getReachableDestinations(ai).filter(d => d.dangerType === "safe");
+      if (safeMoves.length > 0) {
+        // Carry an enemy if heading into danger or sea!
+        const carryTargets = sameLocEnemies.filter(e => canHostileInteract(ai, e).ok).map(e => e.id);
+
+        // If at Pier and artifacts left & has O2 -> go Dragon Palace
+        const unclaimedArts = Object.values(state.artifacts).some(a => a.ownerId === null);
+        if (ai.loc === "land_pier" && unclaimedArts && (ai.hasO2Tank || ai.hasFrogMask)) {
+          performMove(ai, "sea_palace", carryTargets);
+          return;
+        }
+
+        // If armed, chase lowest-KU enemy reachable in 1 step
+        if (ai.knives >= 1) {
+          const sortedEnemies = [...aliveEnemies].sort((a, b) => (a.ku + a.hp) - (b.ku + b.hp));
+          for (const e of sortedEnemies) {
+            if (safeMoves.some(m => m.locId === e.loc)) {
+              performMove(ai, e.loc, []);
+              return;
+            }
+          }
+        }
+
+        // Otherwise move toward Pier (if artifacts unclaimed) or Police or random
+        if (unclaimedArts && safeMoves.some(m => m.locId === "land_pier") && Math.random() < 0.55) {
+          performMove(ai, "land_pier", carryTargets);
+          return;
+        }
+        const pick = safeMoves[Math.floor(Math.random() * safeMoves.length)];
+        performMove(ai, pick.locId, getLoc(pick.locId).layer !== "land" ? carryTargets : []);
+        return;
+      }
+
+      performSkip(ai);
+    }
+
+    function tryAIFreeAttack(ai) {
+      const enemies = state.players.filter(p => p.alive && !p.stealthed && p.id !== ai.id && p.loc === ai.loc && canAttackTarget(ai, p).ok);
+      const killable = enemies.find(e => e.ku <= 0 && ai.knives >= 1);
+      if (killable) {
+        performAttack(ai, "player", killable.id, "kill", true);
+        return true;
+      }
+      const strippable = enemies.find(e => e.ku > 0);
+      if (strippable) {
+        performAttack(ai, "player", strippable.id, "strip", true);
+        return true;
+      }
+      return false;
+    }
+
+    function executeAIWish(ai) {
+      const enemies = state.players.filter(p => p.alive && p.id !== ai.id);
+      const inO2Danger = enemies.filter(e => !e.hasFrogMask && (getLoc(e.loc).layer === "sea" || getLoc(e.loc).layer === "sky"));
+      if (inO2Danger.length > 0) {
+        executeWishEffect(ai, "airtax");
+        return;
+      }
+      const strongest = [...enemies].sort((a, b) => (b.ku + b.hp + b.artifacts.length * 3) - (a.ku + a.hp + a.artifacts.length * 3))[0];
+      if (strongest) {
+        executeWishEffect(ai, "warrant", strongest.id);
+        return;
+      }
+      executeWishEffect(ai, "disarm");
+    }
+
+    /*************************************************************************
+     * 10. MAIN UI RENDERERS (Console, 3-Tier Map, Status Cards, Logs)
+     *************************************************************************/
+    function renderAll() {
+      if (!state) return;
+
+      // Top bar
+      document.getElementById("top-round-label").textContent = `第 ${state.round} 回合`;
+      const phaseNames = {
+        RPS: "✊✌️🖐️ 猜拳获步阶段",
+        INITIATIVE: "⚖️ 发言权争夺阶段",
+        ACTION: "⚔️ 战术行动阶段",
+        END_FALL: "🌤️ 半空自动坠落结算",
+        GAME_OVER: "🏆 对局已结束"
+      };
+      document.getElementById("top-phase-label").textContent = phaseNames[state.phase] || state.phase;
+
+      renderCommandConsole();
+      renderThreeTierMap();
+      renderPlayerStatusList();
+      renderGlobalArtifacts();
+      renderBattleLog();
+    }
+
+    function renderCommandConsole() {
+      const box = document.getElementById("command-console");
+
+      // PHASE 1: RPS
+      if (state.phase === "RPS") {
+        const nextHumanId = state.rpsHumanQueue[0];
+        if (nextHumanId !== undefined) {
+          const p = state.players[nextHumanId];
+          const remainingHumans = state.rpsHumanQueue.length;
+          box.innerHTML = `
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded text-xs font-extrabold ${p.palette.badge}">第 ${state.round} 回合 · 猜拳</span>
+                  <h2 class="text-base sm:text-lg font-black text-white">请 <span class="${p.palette.text}">${p.roleIcon} ${p.name}</span> 秘密出拳</h2>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">平局重猜；只要分出胜负，所有胜者各获 1 步（当前还剩 ${remainingHumans} 位人类玩家待出拳）</p>
+              </div>
+              ${state.rpsLastResult && state.rpsLastResult.tie ? `<span class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold">上轮平局 · 请重猜</span>` : ""}
+            </div>
+            <div class="grid grid-cols-3 gap-2.5 sm:gap-4">
+              ${Object.values(GESTURES).map(g => `
+                <button onclick="submitHumanRPS(${p.id}, '${g.id}')" class="btn-tac py-3.5 sm:py-4 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 hover:border-amber-400 flex flex-col items-center gap-1 shadow-md">
+                  <span class="text-2xl sm:text-3xl">${g.icon}</span>
+                  <span class="text-xs sm:text-sm font-extrabold text-white">${g.name}</span>
+                </button>
+              `).join("")}
+            </div>
+          `;
+        } else {
+          box.innerHTML = `
+            <div class="py-4 text-center">
+              <div class="text-sky-300 font-bold text-sm animate-pulse">🤖 所有 AI 正在同时猜拳中...</div>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // PHASE 2: INITIATIVE
+      if (state.phase === "INITIATIVE") {
+        if (state.initSlotChoicesPending) {
+          const first = state.players[state.initRanked[0]];
+          const total = state.initRanked.length;
+          if (first.isAI) {
+            box.innerHTML = `<div class="py-4 text-center text-amber-300 font-bold text-sm animate-pulse">👑 ${first.name} 赢得第一解释权，正在思考行动顺位...</div>`;
+          } else {
+            box.innerHTML = `
+              <div class="mb-3">
+                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">👑 第一解释权</span>
+                <h2 class="text-base sm:text-lg font-black text-white mt-1.5">${first.name} 赢得了最高发言权！请选择你本回合第几个行动：</h2>
+                <p class="text-xs text-slate-400 mt-0.5">其他获步玩家（${state.initRanked.slice(1).map(id => state.players[id].name).join("、")}）将按排名依次填入剩余顺位。</p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                ${Array.from({ length: total }, (_, idx) => `
+                  <button onclick="confirmInitiativeSlot(${idx})" class="btn-tac px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/60 text-amber-200 font-bold text-sm">
+                    第 ${idx + 1} 个行动 ${idx === 0 ? "(先手)" : idx === total - 1 ? "(后手)" : ""}
+                  </button>
+                `).join("")}
+              </div>
+            `;
+          }
+          return;
+        }
+
+        const nextHumanId = state.initHumanQueue[0];
+        if (nextHumanId !== undefined) {
+          const p = state.players[nextHumanId];
+          box.innerHTML = `
+            <div class="mb-3">
+              <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-xs font-bold">⚖️ 发言权争夺战</span>
+              <h2 class="text-base sm:text-lg font-black text-white mt-1">多人同时获步！请 <span class="${p.palette.text}">${p.name}</span> 猜拳争夺第一解释权</h2>
+              <p class="text-xs text-slate-400 mt-0.5">当前竞争者：${state.initSubPool.map(id => state.players[id].name).join(" vs ")}</p>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+              ${Object.values(GESTURES).map(g => `
+                <button onclick="submitHumanInitiativeRPS(${p.id}, '${g.id}')" class="btn-tac py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-indigo-500/40 flex flex-col items-center gap-1">
+                  <span class="text-2xl">${g.icon}</span>
+                  <span class="text-xs font-bold text-white">${g.name}</span>
+                </button>
+              `).join("")}
+            </div>
+          `;
+        } else {
+          box.innerHTML = `<div class="py-4 text-center text-indigo-300 font-bold text-sm animate-pulse">⚖️ 正在通过猜拳决出发言权排名...</div>`;
+        }
+        return;
+      }
+
+      // PHASE 3: ACTION
+      if (state.phase === "ACTION") {
+        const entry = state.actionQueue[state.currentActorIdx];
+        if (!entry) return;
+        const actor = state.players[entry.playerId];
+        const locObj = getLoc(actor.loc);
+
+        if (actor.isAI) {
+          box.innerHTML = `
+            <div class="flex items-center justify-between py-2">
+              <div class="flex items-center gap-3">
+                <span class="w-9 h-9 rounded-xl ${actor.palette.badge} flex items-center justify-center text-lg font-bold">${actor.roleIcon}</span>
+                <div>
+                  <div class="text-sm sm:text-base font-black text-white">${actor.name} 的回合 <span class="text-xs text-amber-300 ml-1">(剩余 ${state.currentStepsLeft} 步)</span></div>
+                  <div class="text-xs text-sky-300 animate-pulse">🤖 AI 正在分析三层战场态势并执行决策...</div>
+                </div>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300">位置：${locObj.icon} ${locObj.name}</span>
+            </div>
+          `;
+          return;
+        }
+
+        // Human Action Controls
+        const sameLocEnemies = state.players.filter(p => p.alive && !p.stealthed && p.id !== actor.id && p.loc === actor.loc);
+        const reachables = getReachableDestinations(actor);
+        const canPinchList = sameLocEnemies.filter(e => e.artifacts.includes("sq3") && !e.pinchedBy.includes(actor.id));
+        const canStripPlayers = sameLocEnemies.filter(e => e.ku > 0 && canAttackTarget(actor, e).ok);
+        const canKillPlayers = sameLocEnemies.filter(e => e.ku <= 0 && canAttackTarget(actor, e).ok);
+        const canStealKnife = sameLocEnemies.filter(e => e.knives > 0 && canHostileInteract(actor, e).ok);
+        const canStealO2 = sameLocEnemies.filter(e => e.hasO2Tank && !actor.hasO2Tank && canHostileInteract(actor, e).ok);
+        const isAtPrison = actor.loc === "land_prison_in" || actor.loc === "land_prison_out";
+        const isOxygenZone = locObj.layer === "sea" || locObj.layer === "sky";
+
+        const queueBadge = state.actionQueue.map((q, idx) => {
+          const qp = state.players[q.playerId];
+          const cls = idx === state.currentActorIdx ? `${qp.palette.badge} ring-2 ring-white` : idx < state.currentActorIdx ? "bg-slate-800/50 text-slate-500 line-through" : "bg-slate-800 text-slate-300";
+          return `<span class="px-2 py-0.5 rounded text-[11px] font-bold ${cls}">${qp.name}${q.isStealthReveal ? "🥷" : ""}</span>`;
+        }).join(" → ");
+
+        box.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-800">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-xl ${actor.palette.badge} flex items-center justify-center text-xl shadow active-actor-ring">${actor.roleIcon}</div>
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h2 class="text-base sm:text-lg font-black text-white">${actor.name} 的行动回合</h2>
+                  <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-extrabold">剩余 ${state.currentStepsLeft} 步</span>
+                </div>
+                <div class="text-xs text-slate-400 mt-0.5">
+                  当前位置：<strong class="text-slate-200">${locObj.icon} ${locObj.name}</strong>
+                  · ⚔️×${actor.atkMult}${actor.artifacts.includes("sq1") ? "×2(大刀)" : ""}
+                  · 🔪${actor.knives}把
+                  · 👖${formatNum(actor.ku)}/${formatNum(actor.kuMax)}
+                </div>
+              </div>
+            </div>
+            <div class="text-[11px] text-slate-400 flex items-center gap-1 flex-wrap">
+              <span>顺位：</span>${queueBadge}
+            </div>
+          </div>
+
+          <!-- Action Buttons Grid -->
+          <div class="flex flex-wrap gap-2">
+            <!-- MOVE + FORCED CARRY -->
+            <button onclick="openMoveModal(${actor.id}, false)" ${reachables.length === 0 ? "disabled" : ""}
+              class="btn-tac px-3.5 py-2 rounded-xl bg-sky-600/90 hover:bg-sky-500 text-white text-xs sm:text-sm font-bold shadow">
+              🏃 移动 / 强制带人
+            </button>
+
+            <!-- SQ2 RUSH -->
+            ${actor.artifacts.includes("sq2") ? `
+              <button onclick="openMoveModal(${actor.id}, true)" ${reachables.length === 0 ? "disabled" : ""}
+                class="btn-tac px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 text-white text-xs sm:text-sm font-extrabold shadow">
+                ⚡ 利刃突进 (移+攻)
+              </button>
+            ` : ""}
+
+            <!-- BASIC COMBAT & EQUIP -->
+            <button onclick="performDrawKnife(state.players[${actor.id}])"
+              class="btn-tac px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 text-xs sm:text-sm font-bold">
+              🔪 拔刀 (+1)
+            </button>
+
+            <button onclick="performWearPants(state.players[${actor.id}])" ${actor.hasFrogMask || actor.ku >= actor.kuMax ? "disabled" : ""}
+              class="btn-tac px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 text-xs sm:text-sm font-bold">
+              👖 穿裤子 (+1)
+            </button>
+
+            <!-- ATTACK (STRIP / KILL) -->
+            <button onclick="openAttackModal(${actor.id}, 'strip')" ${canStripPlayers.length === 0 && !(isAtPrison && state.warden.ku > 0) ? "disabled" : ""}
+              class="btn-tac px-3 py-2 rounded-xl bg-orange-600/85 hover:bg-orange-500 text-white text-xs sm:text-sm font-bold">
+              💥 扒裤 ${canStripPlayers.length + (isAtPrison && state.warden.ku > 0 ? 1 : 0) > 0 ? `(${canStripPlayers.length + (isAtPrison && state.warden.ku > 0 ? 1 : 0)})` : ""}
+            </button>
+
+            <button onclick="openAttackModal(${actor.id}, 'kill')" ${actor.knives <= 0 || (canKillPlayers.length === 0 && !(isAtPrison && state.warden.ku <= 0)) ? "disabled" : ""}
+              class="btn-tac px-3 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-xs sm:text-sm font-extrabold shadow">
+              🔪 咔 (斩杀)
+            </button>
+
+            <!-- INTERACTIONS -->
+            ${canPinchList.length > 0 ? `
+              <button onclick="openSimpleTargetModal(${actor.id}, 'pinch')"
+                class="btn-tac px-3 py-2 rounded-xl bg-pink-600/85 hover:bg-pink-500 text-white text-xs sm:text-sm font-bold">
+                🤏 捏猪脸 (${canPinchList.length})
+              </button>
+            ` : ""}
+
+            ${canStealKnife.length > 0 ? `
+              <button onclick="openSimpleTargetModal(${actor.id}, 'stealKnife')"
+                class="btn-tac px-3 py-2 rounded-xl bg-amber-700/80 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold">
+                🫳 抢刀 (${canStealKnife.length})
+              </button>
+            ` : ""}
+
+            ${canStealO2.length > 0 ? `
+              <button onclick="openSimpleTargetModal(${actor.id}, 'stealO2')"
+                class="btn-tac px-3 py-2 rounded-xl bg-cyan-700/80 hover:bg-cyan-600 text-white text-xs sm:text-sm font-bold">
+                🫧 抢氧气瓶 (${canStealO2.length})
+              </button>
+            ` : ""}
+
+            <!-- BREATHE -->
+            ${isOxygenZone && !actor.hasFrogMask ? `
+              <button onclick="performBreathe(state.players[${actor.id}])" ${!actor.hasO2Tank ? "disabled" : ""}
+                class="btn-tac px-3 py-2 rounded-xl bg-teal-600/90 hover:bg-teal-500 text-white text-xs sm:text-sm font-bold">
+                😮‍💨 呼吸 (重置${GAME_CONFIG.settings.oxygenMaxTurns}回合)
+              </button>
+            ` : ""}
+
+            <!-- LOCATION SPECIAL ACTIONS -->
+            ${actor.loc === "land_police" ? `
+              <button onclick="openArrestTargetModal(${actor.id})"
+                class="btn-tac px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-bold">
+                🚓 远程逮捕 (BO3)
+              </button>
+              <button onclick="performPoliceHeal(state.players[${actor.id}])" ${actor.hp >= actor.maxHp ? "disabled" : ""}
+                class="btn-tac px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs sm:text-sm font-bold">
+                🏥 搬运尸体 (+${GAME_CONFIG.settings.policeHealAmount}HP)
+              </button>
+              <button onclick="performSelfSurrender(state.players[${actor.id}])"
+                class="btn-tac px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs sm:text-sm font-bold">
+                ⛓️ 自首入狱
+              </button>
+            ` : ""}
+
+            ${actor.loc === "sea_aquarium" && !actor.hasFrogMask ? `
+              <button onclick="performFrogMask(state.players[${actor.id}])"
+                class="btn-tac px-3 py-2 rounded-xl bg-lime-600/85 hover:bg-lime-500 text-white text-xs sm:text-sm font-bold">
+                🐸 戴青蛙面罩 (永呼吸/0裤/0.5HP)
+              </button>
+            ` : ""}
+
+            ${actor.loc === "sea_ruins" ? `
+              <button onclick="performDigRuins(state.players[${actor.id}])"
+                class="btn-tac px-3 py-2 rounded-xl bg-amber-600/90 hover:bg-amber-500 text-white text-xs sm:text-sm font-bold">
+                🏺 挖掘遗迹 (${Math.round(GAME_CONFIG.settings.ruinsDigSuccessChance*100)}%→${GAME_CONFIG.settings.ruinsDigMaxKu}裤上限)
+              </button>
+            ` : ""}
+
+            ${actor.loc === "sea_palace" ? `
+              <button onclick="openDragonPalaceModal(${actor.id})"
+                class="btn-tac px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-xs sm:text-sm font-extrabold shadow">
+                🐉 争夺龙宫神器
+              </button>
+            ` : ""}
+
+            ${actor.loc === "sky_wish" ? `
+              <button onclick="performWishStep(state.players[${actor.id}])"
+                class="btn-tac px-3 py-2 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-600 text-slate-950 text-xs sm:text-sm font-extrabold shadow">
+                🌠 许愿池祈祷 (${actor.wishProgress}/${GAME_CONFIG.settings.wishRequiredSteps})
+              </button>
+            ` : ""}
+
+            <!-- ROLE ACTIVE SKILLS -->
+            ${actor.skillType === "stealth" && !actor.stealthed ? `
+              <button onclick="performStealthSkill(state.players[${actor.id}])"
+                class="btn-tac px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs sm:text-sm font-extrabold shadow">
+                🥷 隐身 (1步·下回合末连动)
+              </button>
+            ` : ""}
+
+            ${actor.skillType === "storm" && actor.stormCharges > 0 ? `
+              <button onclick="openStormModal(${actor.id})"
+                class="btn-tac px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs sm:text-sm font-extrabold shadow">
+                🌪️ 乱流风暴 (剩${actor.stormCharges}次)
+              </button>
+            ` : ""}
+
+            <!-- SKIP -->
+            <button onclick="performSkip(state.players[${actor.id}])"
+              class="btn-tac px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 text-xs sm:text-sm font-medium ml-auto">
+              ⏭️ 跳过
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // PHASE 4: END FALL
+      if (state.phase === "END_FALL") {
+        box.innerHTML = `<div class="py-3 text-center text-sky-300 font-bold text-sm">🌤️ 正在结算【天一·半空】自动坠落落点...</div>`;
+        return;
+      }
+
+      // PHASE 5: GAME OVER
+      if (state.phase === "GAME_OVER") {
+        const winner = state.players.find(p => p.alive);
+        box.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-3 py-1">
+            <div class="text-base sm:text-lg font-black text-amber-300">🏆 战局结束！${winner ? `最终胜者：${winner.roleIcon} ${winner.name}` : "全员同归于尽！"}</div>
+            <button onclick="returnToSetup()" class="btn-tac px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-sm">再来一局</button>
+          </div>
+        `;
+      }
+    }
+
+    function renderThreeTierMap() {
+      const allLocs = getAllLocations();
+      const activeActor = (state.phase === "ACTION" && state.actionQueue[state.currentActorIdx])
+        ? state.players[state.actionQueue[state.currentActorIdx].playerId]
+        : null;
+
+      const buildNodeHtml = (loc) => {
+        const occupants = state.players.filter(p => p.alive && !p.stealthed && p.loc === loc.id);
+        const isCurrentActorHere = activeActor && activeActor.alive && !activeActor.stealthed && activeActor.loc === loc.id;
+
+        let extraHtml = "";
+        if (loc.id === "land_prison_out" || loc.id === "land_prison_in") {
+          if (loc.id === "land_prison_in") {
+            extraHtml = `
+              <div class="mt-1.5 px-2 py-1 rounded bg-rose-950/60 border border-rose-500/35 text-[11px] flex items-center justify-between">
+                <span class="text-rose-200 font-bold">👮 典狱长${state.warden.enhanced ? "(通缉强化)" : ""}</span>
+                <span class="text-amber-300 font-semibold">👖${formatNum(state.warden.ku)} · ❤️${formatNum(state.warden.hp)}</span>
+              </div>
+            `;
+          }
+        }
+        if (loc.id === "sea_palace") {
+          const left = Object.values(state.artifacts).filter(a => a.ownerId === null);
+          extraHtml = `
+            <div class="mt-1.5 flex flex-wrap gap-1">
+              ${Object.values(state.artifacts).map(a => `
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${a.ownerId !== null ? 'bg-slate-800/60 text-slate-500 line-through' : 'bg-cyan-950/80 text-cyan-200 border border-cyan-500/30'}">
+                  ${a.icon}${a.name} ${a.ownerId !== null ? "已夺" : `${a.progress}/${a.required}`}
+                </span>
+              `).join("")}
+            </div>
+          `;
+        }
+
+        const tokensHtml = occupants.length > 0 ? `
+          <div class="mt-2 flex flex-wrap gap-1.5">
+            ${occupants.map(p => {
+              const isAct = activeActor && activeActor.id === p.id;
+              return `
+                <div class="px-2 py-1 rounded-lg border ${p.palette.bg} ${p.palette.border} ${isAct ? 'ring-2 ring-amber-400' : ''} flex items-center gap-1.5 text-[11px] font-bold">
+                  <span>${p.roleIcon}</span>
+                  <span class="text-white">${p.name}</span>
+                  <span class="text-rose-300">❤️${formatNum(p.hp)}</span>
+                  <span class="text-amber-300">👖${formatNum(p.ku)}</span>
+                  ${p.knives > 0 ? `<span class="text-slate-200">🔪${p.knives}</span>` : ""}
+                  ${(loc.layer === "sea" || loc.layer === "sky") && !p.hasFrogMask ? `<span class="${p.o2Turns <= 1 ? 'text-red-400 animate-pulse' : 'text-sky-300'}">🫧${p.o2Turns}</span>` : ""}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        ` : `<div class="mt-2 text-[11px] text-slate-600 italic">暂无可见单位</div>`;
+
+        return `
+          <div class="map-node rounded-xl p-2.5 border border-slate-700/70 ${isCurrentActorHere ? "map-node-active" : ""}">
+            <div class="flex items-start justify-between gap-1">
+              <div class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-1.5">
+                <span>${loc.icon}</span><span>${loc.name}</span>
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">${loc.short}</div>
+            ${extraHtml}
+            ${tokensHtml}
+          </div>
+        `;
+      };
+
+      document.getElementById("map-tier-sky").innerHTML = allLocs.filter(l => l.layer === "sky").map(buildNodeHtml).join("");
+      document.getElementById("map-tier-land-special").innerHTML = allLocs.filter(l => l.layer === "land" && !l.isHome).map(buildNodeHtml).join("");
+      document.getElementById("map-tier-land-homes").innerHTML = allLocs.filter(l => l.layer === "land" && l.isHome).map(buildNodeHtml).join("");
+      document.getElementById("map-tier-sea").innerHTML = allLocs.filter(l => l.layer === "sea").map(buildNodeHtml).join("");
+    }
+
+    function renderPlayerStatusList() {
+      const aliveCnt = state.players.filter(p => p.alive).length;
+      document.getElementById("alive-counter").textContent = `存活 ${aliveCnt}/${state.players.length}`;
+
+      const activeActorId = (state.phase === "ACTION" && state.actionQueue[state.currentActorIdx])
+        ? state.actionQueue[state.currentActorIdx].playerId
+        : -1;
+
+      const listEl = document.getElementById("player-status-list");
+      listEl.innerHTML = state.players.map(p => {
+        const locObj = getLoc(p.loc);
+        const isCurrent = p.id === activeActorId;
+        const artBadges = p.artifacts.map(id => {
+          const a = state.artifacts[id];
+          return `<span title="${a.desc}" class="px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-400/40 text-amber-200 text-[10px] font-bold">${a.icon}${a.name}</span>`;
+        }).join("");
+
+        return `
+          <div class="rounded-xl p-2.5 border transition ${!p.alive ? 'opacity-45 grayscale border-slate-800 bg-slate-950/60' : isCurrent ? 'border-amber-400 bg-slate-900/95 shadow-lg shadow-amber-900/20' : 'border-slate-800 bg-slate-900/65'}">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="px-1.5 py-0.5 rounded text-[11px] font-extrabold ${p.palette.badge}">${p.roleIcon} ${p.name}</span>
+                <span class="text-[11px] text-slate-400">${p.roleName}${p.isAI ? "·AI" : ""}</span>
+                ${p.stealthed ? `<span class="px-1.5 py-0.5 rounded bg-purple-600/30 border border-purple-400/50 text-purple-200 text-[10px] font-bold">🥷隐身中</span>` : ""}
+                ${!p.alive ? `<span class="px-1.5 py-0.5 rounded bg-red-900/70 text-red-200 text-[10px] font-bold">💀阵亡</span>` : ""}
+              </div>
+              <span class="text-[11px] text-slate-300 font-semibold">${p.stealthed ? "❓未知位置" : `${locObj.icon} ${locObj.name}`}</span>
+            </div>
+
+            <div class="grid grid-cols-4 gap-1.5 mt-2 text-[11px] font-bold">
+              <div class="px-2 py-1 rounded bg-slate-950/80 text-rose-300">❤️ ${formatNum(p.hp)}/${formatNum(p.maxHp)}</div>
+              <div class="px-2 py-1 rounded bg-slate-950/80 text-amber-300">👖 ${formatNum(p.ku)}/${formatNum(p.kuMax)}</div>
+              <div class="px-2 py-1 rounded bg-slate-950/80 text-slate-200">🔪 ${p.knives}</div>
+              <div class="px-2 py-1 rounded bg-slate-950/80 ${p.hasFrogMask ? 'text-lime-300' : !p.hasO2Tank ? 'text-red-400' : 'text-sky-300'}">
+                ${p.hasFrogMask ? "🐸永呼吸" : p.hasO2Tank ? `🫧${p.o2Turns}回` : "💔瓶碎"}
+              </div>
+            </div>
+
+            <div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
+              <span class="text-slate-400">⚔️×${p.atkMult}${p.artifacts.includes("sq1") ? "×2" : ""}</span>
+              ${p.skillType === "storm" ? `<span class="text-cyan-300">🌪️风暴剩${p.stormCharges}</span>` : ""}
+              ${p.wishProgress > 0 ? `<span class="text-yellow-300">🌠许愿${p.wishProgress}/${GAME_CONFIG.settings.wishRequiredSteps}</span>` : ""}
+              ${artBadges}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderGlobalArtifacts() {
+      const el = document.getElementById("artifact-global-list");
+      el.innerHTML = Object.values(state.artifacts).map(a => {
+        const owner = a.ownerId !== null ? state.players[a.ownerId] : null;
+        return `
+          <div class="p-2 rounded-lg border ${owner ? 'border-amber-500/40 bg-amber-950/20' : 'border-slate-800 bg-slate-950/70'}">
+            <div class="flex items-center justify-between font-bold">
+              <span class="text-slate-100">${a.icon} ${a.name}</span>
+              ${owner
+                ? `<span class="text-[10px] px-1.5 py-0.5 rounded ${owner.palette.badge}">${owner.name}</span>`
+                : `<span class="text-cyan-300">${a.progress}/${a.required} 步</span>`
+              }
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1 leading-tight">${a.desc}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderBattleLog() {
+      const el = document.getElementById("battle-log");
+      el.innerHTML = state.logs.map(l => `
+        <div class="px-2.5 py-1.5 rounded-lg border ${l.cls}">
+          <span class="text-[10px] opacity-60 mr-1">[R${l.round}]</span>${l.msg}
+        </div>
+      `).join("");
+    }
+
+    /*************************************************************************
+     * 11. ACTION MODALS (Move/Carry, Attack, Dragon Palace, Storm, Wish, etc.)
+     *************************************************************************/
+    function openModal(html) {
+      document.getElementById("modal-box").innerHTML = html;
+      document.getElementById("modal-overlay").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("modal-overlay").classList.add("hidden");
+    }
+
+    // --- Move & Forced Carry Modal ---
+    function openMoveModal(actorId, isRush = false) {
+      const actor = state.players[actorId];
+      const reachables = getReachableDestinations(actor);
+      const hostages = state.players.filter(p => p.alive && !p.stealthed && p.id !== actor.id && p.loc === actor.loc);
+
+      const hostageHtml = hostages.length > 0 ? `
+        <div class="mb-4 p-3 rounded-xl bg-amber-950/25 border border-amber-500/35">
+          <div class="text-xs font-extrabold text-amber-300 mb-2">⛓️ 强制带人（0额外消耗，勾选要一起挟持走的同地点玩家）：</div>
+          <div class="flex flex-wrap gap-2">
+            ${hostages.map(h => {
+              const check = canHostileInteract(actor, h);
+              return `
+                <label class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 border ${check.ok ? 'border-slate-700 cursor-pointer hover:border-amber-400' : 'border-slate-800 opacity-50 cursor-not-allowed'} text-xs">
+                  <input type="checkbox" class="carry-chk accent-amber-500" value="${h.id}" ${!check.ok ? "disabled" : ""} />
+                  <span class="font-bold text-white">${h.roleIcon} ${h.name}</span>
+                  ${!check.ok ? `<span class="text-[10px] text-pink-300">(需先捏猪脸)</span>` : ""}
+                </label>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      ` : "";
+
+      const grouped = {
+        sky: reachables.filter(r => getLoc(r.locId).layer === "sky"),
+        land: reachables.filter(r => getLoc(r.locId).layer === "land"),
+        sea: reachables.filter(r => getLoc(r.locId).layer === "sea")
+      };
+
+      const renderGroup = (title, colorCls, items) => {
+        if (items.length === 0) return "";
+        return `
+          <div class="mb-3">
+            <div class="text-xs font-bold ${colorCls} mb-1.5">${title}</div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              ${items.map(r => {
+                const l = getLoc(r.locId);
+                const occ = state.players.filter(p => p.alive && !p.stealthed && p.loc === l.id).map(p => p.name).join("、");
+                const dangerBadge = r.dangerType === "fall_hp"
+                  ? "border-rose-500/70 bg-rose-950/40"
+                  : r.dangerType === "fall_o2"
+                    ? "border-amber-500/70 bg-amber-950/40"
+                    : "border-slate-700 bg-slate-900/90 hover:border-sky-400";
+                return `
+                  <button onclick="confirmMoveFromModal(${actor.id}, '${l.id}', ${isRush})"
+                    class="btn-tac p-2.5 rounded-xl border ${dangerBadge} text-left flex flex-col gap-0.5">
+                    <div class="font-bold text-xs sm:text-sm text-white">${l.icon} ${l.name}</div>
+                    <div class="text-[10px] ${r.dangerType !== 'safe' ? 'text-rose-300 font-bold' : 'text-slate-400'}">${r.tag}</div>
+                    ${occ ? `<div class="text-[10px] text-amber-300 mt-0.5">在场：${occ}</div>` : ""}
+                  </button>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      };
+
+      openModal(`
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-black text-white">${isRush ? "⚡ 利刃突进 · 选择目标地点" : "🏃 选择移动目的地"}</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+          </div>
+          ${hostageHtml}
+          ${renderGroup("☁️ 天空层", "text-sky-300", grouped.sky)}
+          ${renderGroup("🏙️ 陆地层", "text-emerald-300", grouped.land)}
+          ${renderGroup("🌊 海洋层", "text-cyan-300", grouped.sea)}
+        </div>
+      `);
+    }
+
+    function confirmMoveFromModal(actorId, destLocId, isRush) {
+      const carried = Array.from(document.querySelectorAll(".carry-chk:checked")).map(el => Number(el.value));
+      closeModal();
+      performMove(state.players[actorId], destLocId, carried, isRush);
+    }
+
+    // --- Rush Free Attack Modal (SQ2) ---
+    function openRushFreeAttackModal(actor) {
+      const sameLocEnemies = state.players.filter(p => p.alive && !p.stealthed && p.id !== actor.id && p.loc === actor.loc && canAttackTarget(actor, p).ok);
+      const isAtPrison = actor.loc === "land_prison_in" || actor.loc === "land_prison_out";
+      const btns = [];
+
+      sameLocEnemies.forEach(e => {
+        if (e.ku > 0) {
+          btns.push(`<button onclick="closeModal(); performAttack(state.players[${actor.id}], 'player', ${e.id}, 'strip', true)" class="btn-tac p-3 rounded-xl bg-orange-600/85 text-white font-bold text-sm">💥 免费扒裤：${e.name} (👖${formatNum(e.ku)})</button>`);
+        } else if (actor.knives >= 1) {
+          btns.push(`<button onclick="closeModal(); performAttack(state.players[${actor.id}], 'player', ${e.id}, 'kill', true)" class="btn-tac p-3 rounded-xl bg-rose-600 text-white font-extrabold text-sm">🔪 免费咔斩杀：${e.name} (❤️${formatNum(e.hp)})</button>`);
+        }
+      });
+
+      if (isAtPrison) {
+        if (state.warden.ku > 0) {
+          btns.push(`<button onclick="closeModal(); performAttack(state.players[${actor.id}], 'warden', null, 'strip', true)" class="btn-tac p-3 rounded-xl bg-orange-700 text-white font-bold text-sm">💥 免费扒典狱长裤子 (👖${formatNum(state.warden.ku)})</button>`);
+        } else if (actor.knives >= 1) {
+          btns.push(`<button onclick="closeModal(); performAttack(state.players[${actor.id}], 'warden', null, 'kill', true)" class="btn-tac p-3 rounded-xl bg-rose-700 text-white font-bold text-sm">🔪 免费咔典狱长 (❤️${formatNum(state.warden.hp)})</button>`);
+        }
+      }
+
+      if (btns.length === 0) {
+        showToast("突进落点暂无可攻击目标", "info");
+        consumeStep(actor);
+        return;
+      }
+
+      openModal(`
+        <div class="p-5">
+          <h3 class="text-lg font-black text-amber-300 mb-2">⚡ 利刃突进 · 发动免费攻击</h3>
+          <p class="text-xs text-slate-400 mb-4">你已抵达【${getLoc(actor.loc).name}】，可立即对同地点任一目标免费发动一次攻击：</p>
+          <div class="flex flex-col gap-2.5">
+            ${btns.join("")}
+            <button onclick="closeModal(); consumeStep(state.players[${actor.id}])" class="btn-tac py-2 rounded-xl bg-slate-800 text-slate-400 text-xs font-bold mt-1">放弃免费攻击</button>
+          </div>
+        </div>
+      `);
+    }
+
+    // --- Attack Target Selection Modal ---
+    function openAttackModal(actorId, mode) {
+      const actor = state.players[actorId];
+      const isAtPrison = actor.loc === "land_prison_in" || actor.loc === "land_prison_out";
+      const candidates = state.players.filter(p => p.alive && !p.stealthed && p.id !== actor.id && p.loc === actor.loc);
+
+      let listHtml = candidates.map(e => {
+        const check = canAttackTarget(actor, e);
+        const validMode = mode === "strip" ? e.ku > 0 : e.ku <= 0;
+        if (!validMode) return "";
+        return `
+          <button onclick="closeModal(); performAttack(state.players[${actor.id}], 'player', ${e.id}, '${mode}')" ${!check.ok ? "disabled" : ""}
+            class="btn-tac p-3 rounded-xl border ${check.ok ? 'border-rose-500/50 bg-slate-900 hover:bg-rose-950/40' : 'border-slate-800 bg-slate-950'} flex items-center justify-between text-left">
+            <div>
+              <div class="font-bold text-white text-sm">${e.roleIcon} ${e.name}</div>
+              <div class="text-xs text-slate-400">❤️ ${formatNum(e.hp)}/${formatNum(e.maxHp)} · 👖 ${formatNum(e.ku)}/${formatNum(e.kuMax)}</div>
+              ${!check.ok ? `<div class="text-[11px] text-pink-300 mt-0.5">${check.reason}</div>` : ""}
+            </div>
+            <span class="px-2.5 py-1 rounded-lg ${mode === "strip" ? "bg-orange-600" : "bg-rose-600"} text-white text-xs font-bold">${mode === "strip" ? "扒裤" : "咔！"}</span>
+          </button>
+        `;
+      }).join("");
+
+      if (isAtPrison && ((mode === "strip" && state.warden.ku > 0) || (mode === "kill" && state.warden.ku <= 0))) {
+        listHtml += `
+          <button onclick="closeModal(); performAttack(state.players[${actor.id}], 'warden', null, '${mode}')"
+            class="btn-tac p-3 rounded-xl border border-amber-500/50 bg-slate-900 hover:bg-amber-950/40 flex items-center justify-between text-left">
+            <div>
+              <div class="font-bold text-amber-300 text-sm">👮 典狱长 NPC</div>
+              <div class="text-xs text-slate-400">❤️ ${formatNum(state.warden.hp)} · 👖 ${formatNum(state.warden.ku)}（击杀后释放狱内所有人）</div>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-xs font-bold">${mode === "strip" ? "扒裤" : "斩杀越狱"}</span>
+          </button>
+        `;
+      }
+
+      openModal(`
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-black text-white">${mode === "strip" ? "💥 选择扒裤目标" : "🔪 选择【咔】斩杀目标"}</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+          </div>
+          <div class="flex flex-col gap-2.5">${listHtml || `<p class="text-sm text-slate-400">没有符合条件的目标。</p>`}</div>
+        </div>
+      `);
+    }
+
+    // --- Pinch / Steal Knife / Steal O2 Modal ---
+    function openSimpleTargetModal(actorId, actionType) {
+      const actor = state.players[actorId];
+      const sameLoc = state.players.filter(p => p.alive && !p.stealthed && p.id !== actor.id && p.loc === actor.loc);
+      const titles = { pinch: "🤏 选择要捏猪脸的目标", stealKnife: "🫳 选择要抢刀的目标", stealO2: "🫧 选择要抢氧气瓶的目标" };
+      let targets = [];
+      if (actionType === "pinch") targets = sameLoc.filter(e => e.artifacts.includes("sq3") && !e.pinchedBy.includes(actor.id));
+      if (actionType === "stealKnife") targets = sameLoc.filter(e => e.knives > 0 && canHostileInteract(actor, e).ok);
+      if (actionType === "stealO2") targets = sameLoc.filter(e => e.hasO2Tank && canHostileInteract(actor, e).ok);
+
+      const fnMap = { pinch: "performPinchFace", stealKnife: "performStealKnife", stealO2: "performStealO2" };
+      openModal(`
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-black text-white">${titles[actionType]}</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+          </div>
+          <div class="flex flex-col gap-2">
+            ${targets.map(t => `
+              <button onclick="closeModal(); ${fnMap[actionType]}(state.players[${actor.id}], ${t.id})"
+                class="btn-tac p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 flex items-center justify-between">
+                <span class="font-bold text-white">${t.roleIcon} ${t.name}</span>
+                <span class="text-xs text-amber-300">确认执行 (1步)</span>
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      `);
+    }
+
+    // --- Police Arrest Target Modal ---
+    function openArrestTargetModal(actorId) {
+      const actor = state.players[actorId];
+      const targets = state.players.filter(p => p.alive && !p.stealthed && p.id !== actor.id);
+      openModal(`
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-black text-white">🚓 警察局远程逮捕 · 选择目标</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+          </div>
+          <p class="text-xs text-slate-400 mb-3">无视距离生效！双方立即进行三局两胜猜拳，败者直接送入监狱·内。</p>
+          <div class="flex flex-col gap-2">
+            ${targets.map(t => {
+              const check = canHostileInteract(actor, t);
+              return `
+                <button onclick="startArrestBattle(state.players[${actor.id}], ${t.id})" ${!check.ok ? "disabled" : ""}
+                  class="btn-tac p-3 rounded-xl border ${check.ok ? 'border-blue-500/50 bg-slate-900 hover:bg-blue-950/40' : 'border-slate-800 bg-slate-950'} flex items-center justify-between text-left">
+                  <div>
+                    <div class="font-bold text-white text-sm">${t.roleIcon} ${t.name} <span class="text-xs text-slate-400">@ ${getLoc(t.loc).name}</span></div>
+                    ${!check.ok ? `<div class="text-[11px] text-pink-300">${check.reason}</div>` : ""}
+                  </div>
+                  <span class="px-2.5 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold">逮捕！</span>
+                </button>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `);
+    }
+
+    // --- Dragon Palace Artifacts Modal ---
+    function openDragonPalaceModal(actorId) {
+      const actor = state.players[actorId];
+      openModal(`
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-black text-cyan-300">🐉 龙宫 · 推进神器夺取进度</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+          </div>
+          <p class="text-xs text-slate-400 mb-3">所有玩家共享进度，谁打出最后一步神器即永久归谁（全服唯一，不可抢夺）：</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            ${Object.values(state.artifacts).map(a => {
+              const owned = a.ownerId !== null;
+              return `
+                <button onclick="closeModal(); performDragonArtifact(state.players[${actor.id}], '${a.id}')" ${owned ? "disabled" : ""}
+                  class="btn-tac p-3.5 rounded-xl border ${owned ? 'border-slate-800 bg-slate-950' : 'border-cyan-500/50 bg-slate-900 hover:bg-cyan-950/40'} text-left flex flex-col gap-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-extrabold text-sm text-white">${a.icon} ${a.name}</span>
+                    <span class="text-xs font-bold ${owned ? 'text-slate-500' : 'text-amber-300'}">${owned ? `已归 ${state.players[a.ownerId].name}` : `${a.progress} / ${a.required} 步`}</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">${a.desc}</p>
+                </button>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `);
+    }
+
+    // --- Stormer Skill Modal ---
+    function openStormModal(actorId) {
+      const actor = state.players[actorId];
+      const targets = state.players.filter(p => p.alive && !p.stealthed);
+      openModal(`
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-black text-cyan-300">🌪️ 乱流风暴 (剩余 ${actor.stormCharges} 次)</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+          </div>
+          <p class="text-xs text-slate-400 mb-4">只能吹向【同一层级】的其他地点（陆→陆 / 海→海 / 天→天），不触发强制带人。</p>
+
+          <div class="space-y-4">
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-cyan-500/40">
+              <div class="text-xs font-extrabold text-cyan-300 mb-2">模式 A：免费单吹（0步消耗 · 吹走指定 1 名玩家）</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                <select id="storm-single-target" onchange="refreshStormSingleDests()" class="px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white">
+                  ${targets.map(t => {
+                    const ok = t.id === actor.id || canHostileInteract(actor, t).ok;
+                    return `<option value="${t.id}" ${!ok ? "disabled" : ""}>${t.name} (@${getLoc(t.loc).name})${!ok ? " [需捏猪脸]" : ""}</option>`;
+                  }).join("")}
+                </select>
+                <select id="storm-single-dest" class="px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white"></select>
+              </div>
+              <button onclick="submitStormSingle(${actor.id})" class="btn-tac w-full py-2 rounded-lg bg-cyan-600 text-white font-bold text-xs">🌪️ 免费释放单人风暴 (不耗步数)</button>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-indigo-500/40">
+              <div class="text-xs font-extrabold text-indigo-300 mb-2">模式 B：群体狂风（消耗 1 步 · 吹走某地点全部玩家）</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                <select id="storm-area-src" onchange="refreshStormAreaDests()" class="px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white">
+                  ${getAllLocations().filter(l => l.id !== "land_prison_in" && l.id !== "sky_mid").map(l => `<option value="${l.id}">${l.icon} ${l.name} (${l.layer})</option>`).join("")}
+                </select>
+                <select id="storm-area-dest" class="px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white"></select>
+              </div>
+              <button onclick="submitStormArea(${actor.id})" class="btn-tac w-full py-2 rounded-lg bg-indigo-600 text-white font-bold text-xs">🌪️💥 消耗 1 步吹走整片区域</button>
+            </div>
+          </div>
+        </div>
+      `);
+      refreshStormSingleDests();
+      refreshStormAreaDests();
+    }
+
+    function refreshStormSingleDests() {
+      const sel = document.getElementById("storm-single-target");
+      const destSel = document.getElementById("storm-single-dest");
+      if (!sel || !destSel) return;
+      const t = state.players[Number(sel.value)];
+      if (!t) return;
+      const layer = getLoc(t.loc).layer;
+      const opts = getAllLocations().filter(l => l.layer === layer && l.id !== t.loc && l.id !== "land_prison_in" && l.id !== "sky_mid");
+      destSel.innerHTML = opts.map(l => `<option value="${l.id}">吹至 → ${l.icon} ${l.name}</option>`).join("");
+    }
+
+    function refreshStormAreaDests() {
+      const srcSel = document.getElementById("storm-area-src");
+      const destSel = document.getElementById("storm-area-dest");
+      if (!srcSel || !destSel) return;
+      const layer = getLoc(srcSel.value).layer;
+      const opts = getAllLocations().filter(l => l.layer === layer && l.id !== srcSel.value && l.id !== "land_prison_in" && l.id !== "sky_mid");
+      destSel.innerHTML = opts.map(l => `<option value="${l.id}">吹至 → ${l.icon} ${l.name}</option>`).join("");
+    }
+
+    function submitStormSingle(actorId) {
+      const tid = Number(document.getElementById("storm-single-target").value);
+      const dest = document.getElementById("storm-single-dest").value;
+      if (!dest) return;
+      closeModal();
+      performStormSkill(state.players[actorId], "single_free", tid, dest);
+    }
+
+    function submitStormArea(actorId) {
+      const src = document.getElementById("storm-area-src").value;
+      const dest = document.getElementById("storm-area-dest").value;
+      if (!dest) return;
+      closeModal();
+      performStormSkill(state.players[actorId], "area_step", src, dest);
+    }
+
+    // --- Sky_Mid Automatic Fall Modal ---
+    function openSkyMidFallModal(player) {
+      const validLocs = getAllLocations().filter(l => l.id !== "land_pier" && l.id !== "sky_mid" && l.id !== "land_prison_in" && l.layer !== "sky");
+      openModal(`
+        <div class="p-5">
+          <span class="px-2.5 py-0.5 rounded-full bg-sky-500/20 border border-sky-400/40 text-sky-300 text-xs font-bold">🌤️ 回合末自动坠落</span>
+          <h3 class="text-lg font-black text-white mt-2">${player.name} 停留在【天一·半空】，请选择落点</h3>
+          <p class="text-xs text-slate-400 mt-1 mb-4">规则：半空坠落至陆地或海洋均【无伤】，可任选落点（码头除外）。</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            ${validLocs.map(l => `
+              <button onclick="confirmSkyMidFall(${player.id}, '${l.id}')" class="btn-tac p-2.5 rounded-xl bg-slate-900 hover:bg-sky-950/50 border border-slate-700 hover:border-sky-400 text-left">
+                <div class="font-bold text-xs sm:text-sm text-white">${l.icon} ${l.name}</div>
+                <div class="text-[10px] text-slate-400">${l.layer === "sea" ? "海洋层(入海)" : "陆地层"}</div>
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      `);
+    }
+
+    // --- Wishing Pool Modal (神龙六愿) ---
+    function openWishModal(actor) {
+      const alive = state.players.filter(p => p.alive);
+      const dead = state.players.filter(p => !p.alive);
+      const allLocs = getAllLocations().filter(l => l.id !== "sky_mid" && l.id !== "land_prison_in");
+
+      openModal(`
+        <div class="p-5 sm:p-6">
+          <div class="text-center mb-4">
+            <span class="px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-400/50 text-yellow-300 text-xs font-extrabold">🌠 许愿池达成 · 神龙六愿</span>
+            <h3 class="text-xl font-black text-white mt-2">${actor.name}，向天空许下你的愿望！</h3>
+          </div>
+          <div class="grid grid-cols-1 gap-3 text-xs">
+            <!-- 1. Swap -->
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700">
+              <div class="font-extrabold text-amber-300 text-sm mb-1">1. 移形换影（空间置换）</div>
+              <p class="text-slate-400 mb-2">无视地形，瞬间对调场上任意 2 名存活玩家的位置。</p>
+              <div class="flex flex-wrap gap-2">
+                <select id="wish-swap-1" class="px-2 py-1.5 rounded bg-slate-950 border border-slate-700 text-white">${alive.map(p => `<option value="${p.id}">${p.name}</option>`).join("")}</select>
+                <select id="wish-swap-2" class="px-2 py-1.5 rounded bg-slate-950 border border-slate-700 text-white">${alive.map((p, i) => `<option value="${p.id}" ${i === 1 ? "selected" : ""}>${p.name}</option>`).join("")}</select>
+                <button onclick="submitWishSwap(${actor.id})" class="btn-tac px-3 py-1.5 rounded-lg bg-amber-600 text-white font-bold">许此愿望</button>
+              </div>
+            </div>
+
+            <!-- 2. Air Tax -->
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div class="font-extrabold text-sky-300 text-sm">2. 空气税（深海高空绝杀）</div>
+                <p class="text-slate-400">除自己外，所有在海里或天空的玩家氧气瞬间 -2 回合（归0直接窒息）！</p>
+              </div>
+              <button onclick="executeWishEffect(state.players[${actor.id}], 'airtax')" class="btn-tac px-3 py-1.5 rounded-lg bg-sky-600 text-white font-bold">许此愿望</button>
+            </div>
+
+            <!-- 3. Warrant -->
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700">
+              <div class="font-extrabold text-rose-300 text-sm mb-1">3. 通缉令（全球公敌）</div>
+              <p class="text-slate-400 mb-2">无视猪脸与距离，强制将 1 人关入监狱·内，并将典狱长强化为 ${GAME_CONFIG.settings.wardenEnhancedKu} 裤！</p>
+              <div class="flex gap-2">
+                <select id="wish-warrant-t" class="px-2 py-1.5 rounded bg-slate-950 border border-slate-700 text-white">${alive.filter(p => p.id !== actor.id).map(p => `<option value="${p.id}">${p.name}</option>`).join("")}</select>
+                <button onclick="executeWishEffect(state.players[${actor.id}], 'warrant', Number(document.getElementById('wish-warrant-t').value))" class="btn-tac px-3 py-1.5 rounded-lg bg-rose-600 text-white font-bold">许此愿望</button>
+              </div>
+            </div>
+
+            <!-- 4. Disarm -->
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div class="font-extrabold text-purple-300 text-sm">4. 缴械风暴（终极掀桌）</div>
+                <p class="text-slate-400">剥夺全员（含自己）所有刀和氧气瓶，全图神器清零退回龙宫！</p>
+              </div>
+              <button onclick="executeWishEffect(state.players[${actor.id}], 'disarm')" class="btn-tac px-3 py-1.5 rounded-lg bg-purple-600 text-white font-bold">许此愿望</button>
+            </div>
+
+            <!-- 5. Blackhole -->
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700">
+              <div class="font-extrabold text-emerald-300 text-sm mb-1">5. 因果律：强制贴脸</div>
+              <p class="text-slate-400 mb-2">将全图所有存活玩家（含自己）强制传送至同一地点展开大乱斗！</p>
+              <div class="flex gap-2">
+                <select id="wish-bh-loc" class="px-2 py-1.5 rounded bg-slate-950 border border-slate-700 text-white">${allLocs.map(l => `<option value="${l.id}">${l.icon} ${l.name}</option>`).join("")}</select>
+                <button onclick="executeWishEffect(state.players[${actor.id}], 'blackhole', document.getElementById('wish-bh-loc').value)" class="btn-tac px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold">许此愿望</button>
+              </div>
+            </div>
+
+            <!-- 6. Revive -->
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700 ${dead.length === 0 ? 'opacity-50' : ''}">
+              <div class="font-extrabold text-yellow-300 text-sm mb-1">6. 轮回转生（经典复活）</div>
+              <p class="text-slate-400 mb-2">${dead.length === 0 ? "当前场上暂无阵亡玩家可复活。" : "以 1裤1命 复活一名阵亡者至指定地点（本局不可攻击许愿者）。"}</p>
+              ${dead.length > 0 ? `
+                <div class="flex flex-wrap gap-2">
+                  <select id="wish-rev-p" class="px-2 py-1.5 rounded bg-slate-950 border border-slate-700 text-white">${dead.map(p => `<option value="${p.id}">${p.name}</option>`).join("")}</select>
+                  <select id="wish-rev-loc" class="px-2 py-1.5 rounded bg-slate-950 border border-slate-700 text-white">${allLocs.map(l => `<option value="${l.id}">${l.icon} ${l.name}</option>`).join("")}</select>
+                  <button onclick="executeWishEffect(state.players[${actor.id}], 'revive', Number(document.getElementById('wish-rev-p').value), document.getElementById('wish-rev-loc').value)" class="btn-tac px-3 py-1.5 rounded-lg bg-yellow-600 text-slate-950 font-extrabold">复活！</button>
+                </div>
+              ` : ""}
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    function submitWishSwap(actorId) {
+      const p1 = Number(document.getElementById("wish-swap-1").value);
+      const p2 = Number(document.getElementById("wish-swap-2").value);
+      if (p1 === p2) { showToast("请选择两名不同的玩家！", "warn"); return; }
+      executeWishEffect(state.players[actorId], "swap", p1, p2);
+    }
+
+    // --- Victory Modal ---
+    function openVictoryModal(winner) {
+      openModal(`
+        <div class="p-6 sm:p-8 text-center">
+          <div class="text-5xl mb-3">🏆</div>
+          <h2 class="text-2xl sm:text-3xl font-black text-amber-300">${winner ? `${winner.roleIcon} ${winner.name} 赢得最终胜利！` : "全军覆没 · 平局！"}</h2>
+          <p class="text-sm text-slate-400 mt-2 mb-6">历时 ${state.round} 个回合的立体空间智斗，小刀永生战局圆满落幕。</p>
+          <div class="flex justify-center gap-3">
+            <button onclick="returnToSetup()" class="btn-tac px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 text-white font-extrabold text-sm shadow-lg">🔄 返回大厅 · 再来一局</button>
+            <button onclick="closeModal()" class="btn-tac px-5 py-3 rounded-xl bg-slate-800 text-slate-200 font-bold text-sm">查看最终战报</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function openRestartConfirmModal() {
+      openModal(`
+        <div class="p-5 text-center">
+          <h3 class="text-lg font-black text-white mb-2">确认结束当前对局？</h3>
+          <p class="text-xs text-slate-400 mb-5">将返回战前整备大厅重新选择人数与角色。</p>
+          <div class="flex justify-center gap-3">
+            <button onclick="closeModal()" class="btn-tac px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-sm font-bold">取消</button>
+            <button onclick="returnToSetup()" class="btn-tac px-4 py-2 rounded-xl bg-rose-600 text-white text-sm font-bold">确认重开</button>
+          </div>
+        </div>
+      `);
+    }
+
+    /*************************************************************************
+     * 12. EXTENSIBLE RULE & ROLE CONFIG EDITOR MODAL (热更新系统)
+     *************************************************************************/
+    function openConfigModal() {
+      const s = GAME_CONFIG.settings;
+      const a = GAME_CONFIG.artifacts;
+      openModal(`
+        <div class="p-5 sm:p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-black text-indigo-300">⚙️ 规则与角色热更新编辑器</h3>
+              <p class="text-xs text-slate-400">修改数值或新增自定义角色后立即生效（支持 JSON 导出保存）</p>
+            </div>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+          </div>
+
+          <!-- Section 1: Core Numeric Settings -->
+          <div class="mb-4 p-3.5 rounded-xl bg-slate-900 border border-slate-800">
+            <h4 class="text-xs font-extrabold text-amber-300 uppercase mb-2.5">1. 核心机制数值</h4>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+              <label class="flex flex-col gap-1">
+                <span class="text-slate-400">遗迹命中率 (0-1)</span>
+                <input id="cfg-ruinsHit" type="number" step="0.05" min="0.1" max="1" value="${s.ruinsHitChance}" class="px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-slate-400">遗迹挖宝成功率</span>
+                <input id="cfg-ruinsDig" type="number" step="0.05" min="0.05" max="1" value="${s.ruinsDigSuccessChance}" class="px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-slate-400">缺氧回合上限</span>
+                <input id="cfg-o2" type="number" min="1" max="10" value="${s.oxygenMaxTurns}" class="px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-slate-400">大刀 / 利刃步数</span>
+                <div class="flex gap-1">
+                  <input id="cfg-sq1" type="number" min="1" max="5" value="${a.sq1.steps}" class="w-1/2 px-2 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+                  <input id="cfg-sq2" type="number" min="1" max="5" value="${a.sq2.steps}" class="w-1/2 px-2 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+                </div>
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-slate-400">猪脸 / 云梯步数</span>
+                <div class="flex gap-1">
+                  <input id="cfg-sq3" type="number" min="1" max="5" value="${a.sq3.steps}" class="w-1/2 px-2 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+                  <input id="cfg-sq4" type="number" min="1" max="5" value="${a.sq4.steps}" class="w-1/2 px-2 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+                </div>
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-slate-400">典狱长初始裤子</span>
+                <input id="cfg-wardenKu" type="number" min="1" max="10" value="${s.wardenDefaultKu}" class="px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+              </label>
+            </div>
+            <button onclick="saveCoreSettings()" class="btn-tac mt-3 px-4 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-bold">💾 保存数值修改</button>
+          </div>
+
+          <!-- Section 2: Add Custom Role -->
+          <div class="mb-4 p-3.5 rounded-xl bg-slate-900 border border-indigo-500/35">
+            <h4 class="text-xs font-extrabold text-indigo-300 uppercase mb-2.5">2. 快速新增自定义角色</h4>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mb-2">
+              <input id="new-role-name" type="text" placeholder="角色名 (如: 狂战士)" class="px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+              <input id="new-role-icon" type="text" value="🔥" placeholder="图标 Emoji" class="px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+              <input id="new-role-hp" type="number" step="0.5" value="2" placeholder="生命 HP" class="px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+              <input id="new-role-ku" type="number" step="0.5" value="1" placeholder="初始裤子" class="px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+              <input id="new-role-kumax" type="number" step="0.5" value="2" placeholder="裤子上限" class="px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+              <input id="new-role-atk" type="number" step="0.5" value="2" placeholder="攻击倍率" class="px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-white" />
+              <select id="new-role-skill" class="col-span-2 px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-white">
+                <option value="none">技能模板：无主动技 (纯身材流)</option>
+                <option value="stealth">技能模板：突袭隐身流</option>
+                <option value="storm">技能模板：乱流风暴控场</option>
+              </select>
+            </div>
+            <input id="new-role-desc" type="text" placeholder="角色说明（选填）" class="w-full px-2.5 py-1.5 rounded bg-slate-950 border border-slate-700 text-xs text-white mb-2.5" />
+            <button onclick="addCustomRole()" class="btn-tac px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold">➕ 添加至角色池</button>
+          </div>
+
+          <!-- Section 3: Raw JSON Import / Export -->
+          <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="text-xs font-extrabold text-emerald-300 uppercase">3. 高级 JSON 配置（导出/导入整套规则）</h4>
+              <div class="flex gap-1.5">
+                <button onclick="copyConfigJson()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 font-bold">📋 复制JSON</button>
+                <button onclick="resetDefaultConfig()" class="px-2.5 py-1 rounded bg-rose-950 hover:bg-rose-900 text-[11px] text-rose-200 font-bold">↩️ 恢复默认</button>
+              </div>
+            </div>
+            <textarea id="cfg-json-area" rows="6" class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 font-mono text-[11px] text-emerald-200 focus:outline-none">${escapeHtml(JSON.stringify(GAME_CONFIG, null, 2))}</textarea>
+            <button onclick="applyConfigJson()" class="btn-tac mt-2 px-4 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">✅ 应用 JSON 配置</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function saveCoreSettings() {
+      GAME_CONFIG.settings.ruinsHitChance = Number(document.getElementById("cfg-ruinsHit").value) || 0.5;
+      GAME_CONFIG.settings.ruinsDigSuccessChance = Number(document.getElementById("cfg-ruinsDig").value) || 0.25;
+      GAME_CONFIG.settings.oxygenMaxTurns = Math.max(1, Number(document.getElementById("cfg-o2").value) || 3);
+      GAME_CONFIG.settings.wardenDefaultKu = Math.max(1, Number(document.getElementById("cfg-wardenKu").value) || 3);
+      GAME_CONFIG.artifacts.sq1.steps = Math.max(1, Number(document.getElementById("cfg-sq1").value) || 2);
+      GAME_CONFIG.artifacts.sq2.steps = Math.max(1, Number(document.getElementById("cfg-sq2").value) || 1);
+      GAME_CONFIG.artifacts.sq3.steps = Math.max(1, Number(document.getElementById("cfg-sq3").value) || 3);
+      GAME_CONFIG.artifacts.sq4.steps = Math.max(1, Number(document.getElementById("cfg-sq4").value) || 2);
+      showToast("核心数值已更新！新对局将完全应用新配置。", "success");
+      document.getElementById("cfg-json-area").value = JSON.stringify(GAME_CONFIG, null, 2);
+      renderSetup();
+      if (state) renderAll();
+    }
+
+    function addCustomRole() {
+      const name = document.getElementById("new-role-name").value.trim();
+      if (!name) { showToast("请输入自定义角色名！", "warn"); return; }
+      const newRole = {
+        id: "custom_" + Date.now(),
+        name,
+        tag: "自定义",
+        icon: document.getElementById("new-role-icon").value.trim() || "⭐",
+        color: "indigo",
+        hp: Math.max(0.5, Number(document.getElementById("new-role-hp").value) || 1),
+        ku: Math.max(0, Number(document.getElementById("new-role-ku").value) || 1),
+        kuMax: Math.max(0, Number(document.getElementById("new-role-kumax").value) || 2),
+        atkMult: Math.max(0.5, Number(document.getElementById("new-role-atk").value) || 1),
+        skillType: document.getElementById("new-role-skill").value,
+        stormCharges: 2,
+        skillDesc: document.getElementById("new-role-desc").value.trim() || "玩家自创角色！"
+      };
+      GAME_CONFIG.roles.push(newRole);
+      showToast(`🎉 已新增角色【${newRole.icon} ${newRole.name}】！`, "success");
+      renderSetup();
+      openConfigModal();
+    }
+
+    function copyConfigJson() {
+      const ta = document.getElementById("cfg-json-area");
+      ta.select();
+      document.execCommand("copy");
+      showToast("完整配置 JSON 已复制到剪贴板！", "success");
+    }
+
+    function applyConfigJson() {
+      try {
+        const parsed = JSON.parse(document.getElementById("cfg-json-area").value);
+        if (!parsed.settings || !parsed.roles || !parsed.artifacts) throw new Error("缺少关键字段");
+        GAME_CONFIG = parsed;
+        showToast("✅ JSON 规则已成功热更新！", "success");
+        renderSetup();
+        if (state) renderAll();
+        closeModal();
+      } catch (e) {
+        showToast("JSON 格式有误：" + e.message, "danger");
+      }
+    }
+
+    function resetDefaultConfig() {
+      GAME_CONFIG = JSON.parse(JSON.stringify(DEFAULT_GAME_CONFIG));
+      showToast("已恢复 v1.2 默认规则配置", "info");
+      renderSetup();
+      openConfigModal();
+    }
+
+    /*************************************************************************
+     * 13. BUILT-IN RULEBOOK MODAL (完整规则书)
+     *************************************************************************/
+    function openRulebookModal() {
+      openModal(`
+        <div class="p-5 sm:p-6 text-xs sm:text-sm space-y-4 leading-relaxed">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-lg font-black text-amber-300">📖 《Little Knife · 小刀永生计划》v1.2 规则书</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+          </div>
+
+          <div>
+            <h4 class="font-extrabold text-white mb-1">1. 核心回合与发言权</h4>
+            <ul class="list-disc pl-5 text-slate-300 space-y-1">
+              <li>每回合全体存活玩家同时猜拳：手势全同或三种全出则为平局重猜；其余情况所有胜者各得 <strong>1 步</strong>（步数不可跨回合积攒）。</li>
+              <li>多人同时获步时，获步者内部再猜拳决出排名，第一名拥有<strong>第一解释权</strong>，可自由指定自己第几个行动。</li>
+              <li><strong>攻击铁律</strong>：必须与目标处于同一地点（贴脸）。<strong>扒裤</strong>无需刀；<strong>咔（斩杀）</strong>需持有至少 1 把刀且目标裤子归 0。</li>
+              <li><strong>强制带人</strong>：移动时可 0 额外消耗强制挟持同地点任意数量的玩家一起移动（需满足猪脸前置）。</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="font-extrabold text-emerald-300 mb-1">2. 陆地层（警察局 · 监狱 · 码头）</h4>
+            <ul class="list-disc pl-5 text-slate-300 space-y-1">
+              <li><strong>警察局</strong>：1步远程【逮捕】任意玩家（立即进入三局两胜猜拳，败者入狱）；1步【搬运尸体】回 0.5 HP；1步【自首】入狱。</li>
+              <li><strong>监狱</strong>：分为【监狱·内】与【监狱·外】，内外完全隔离不可互动。内外玩家均可攻击共享 NPC <strong>典狱长（3裤1命）</strong>，击杀典狱长即可释放所有狱内囚犯并刷新新典狱长。</li>
+              <li><strong>码头</strong>：陆地与海洋的唯一常规出入口，1步下海至水族馆/遗迹/龙宫。</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="font-extrabold text-cyan-300 mb-1">3. 海洋层（缺氧 3 回合 · 到达当回合不计）</h4>
+            <ul class="list-disc pl-5 text-slate-300 space-y-1">
+              <li><strong>水族馆</strong>：1步装备【青蛙呼吸面罩】，永久水下呼吸，但裤子永久归 0 且 HP 强制锁死为 0.5。</li>
+              <li><strong>遗迹</strong>：在遗迹受攻击仅 50% 命中率；1步【挖掘遗迹】（25% 概率）成功后裤子上限永久提至 10（需逐条穿）。</li>
+              <li><strong>龙宫</strong>：4 件全服唯一神器（全局共享进度，最后一步归属且不可抢夺）：<strong>大刀(2步·攻×2)</strong>、<strong>利刃(1步·突进移+攻)</strong>、<strong>猪脸(3步·互动前必先贴脸捏脸)</strong>、<strong>云梯(2步·直登天二&无伤降落)</strong>。</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="font-extrabold text-sky-300 mb-1">4. 天空层（缺氧 3 回合 · 半空与坠落）</h4>
+            <ul class="list-disc pl-5 text-slate-300 space-y-1">
+              <li>陆地花 1 步升至<strong>天一（半空）</strong>，再花 1 步升至<strong>马厩</strong>或<strong>许愿池</strong>。若回合末仍停在天一，自动无伤坠落并自选任意落点（码头除外）。</li>
+              <li>仅在<strong>马厩</strong>（或持云梯）可安全 1 步下陆地。无云梯直接从天二跳陆地摔掉 <strong>2 HP</strong>；跳海无伤但<strong>氧气瓶损坏</strong>（需贴脸抢他人氧气瓶）。</li>
+              <li><strong>许愿池</strong>：个人累计 3 步触发【神龙六愿】（移形换影 / 空气税 / 通缉令 / 缴械风暴 / 强制贴脸 / 轮回转生）。</li>
+            </ul>
+          </div>
+        </div>
+      `);
+    }
+
+    /*************************************************************************
+     * 14. INITIALIZE ON LOAD
+     *************************************************************************/
+    window.onload = function () {
+      renderSetup();
+    };
+  </script>
+</body>
+</html>
